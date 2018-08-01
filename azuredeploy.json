@@ -183,7 +183,7 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-          "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/azuregfs.sh"
+          "https://raw.githubusercontent.com/grandparoach/gluster/master/azuregfs.sh"
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
