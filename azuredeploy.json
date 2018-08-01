@@ -1,0 +1,357 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "hostOs": {
+      "type": "string",
+      "defaultValue": "CentOS_7.4",
+      "allowedValues": [
+        "CentOS_7.4",
+        "RHEL_7.4"
+      ],
+      "metadata": {
+        "description": "OS to install on the host system"
+      }
+    },
+    "scaleNumber": {
+      "type": "int",
+      "defaultValue": 4,
+      "allowedValues": [
+        2,
+        4,
+        6,
+        8
+      ],
+      "metadata": {
+        "description": "Number of nodes in the gluster file system"
+      }
+    },
+    "existingVNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    },
+    "existingVNetResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "name of Resource Group for existing Virtual Network"
+      }
+    },
+    "existingSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "ssh user name"
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "defaultValue": "password",
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ],
+      "metadata": {
+        "description": "Authentication type for the virtual machines"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Admin password for the virtual machines"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_E8s_v3",
+      "allowedValues": [
+        "Standard_DS3_v2",
+        "Standard_DS4_v2",
+        "Standard_DS5_v2",
+        "Standard_DS11_v2",
+        "Standard_DS12_v2",
+        "Standard_DS13_v2",
+        "Standard_DS14_v2",
+        "Standard_DS15_v2",
+        
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_D32s_v3",
+        "Standard_D64s_v3",
+    
+        "Standard_E8s_v3",
+        "Standard_E16s_v3",
+        "Standard_E32s_v3",
+        "Standard_E64s_v3",
+      
+        "Standard_F8s_v2",
+        "Standard_F16s_v2",
+        "Standard_F32s_v2",
+        "Standard_F64s_v2"
+      ],
+      "metadata": {
+        "description": "sku to use for the NFS server VM"
+      }
+    },
+    "vmNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "VM name prefix, a number will be appended for each node"
+      }
+    },
+    "dataDiskSize": {
+      "type": "int",
+      "defaultValue": 1024,
+      "allowedValues": [
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4095
+      ],
+      "metadata": {
+        "description": "The size of the datadisks to be striped. The total capacity will be this size multiplied by the number of data disks you specify."
+      }
+    },
+    "nbDataDisks": {
+      "type": "int",
+      "defaultValue": 8,
+      "maxValue": 16,
+      "metadata": {
+        "description": "The number of disks to attach to each server."
+      }
+    },
+    "volumeName": {
+      "type": "string",
+      "defaultValue": "gfsvol",
+      "metadata": {
+        "description": "Gluster file system volume name"
+      }
+    }
+  },
+  "variables": {
+    "nicName": "nic",
+    "DiagSAName": "[concat(uniqueString(subscription().id, resourceGroup().id), 'diag')]",
+    "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
+    "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
+    "imageReference": "[variables('computeImages')[parameters('hostOS')]]",
+    "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
+    "computeImages": {
+        "CentOS_7.4": {
+          "publisher": "OpenLogic",
+          "offer": "CentOS",
+          "sku": "7.4",
+          "version": "latest"
+        },
+        "RHEL_7.4": {
+          "publisher": "Redhat",
+          "offer": "RHEL",
+          "sku": "7.4",
+          "version": "latest"
+        }
+    },
+    "linuxConfiguration_sshPublicKey": {
+      "disablePasswordAuthentication": "true",
+      "ssh": {
+        "publicKeys": [
+          {
+            "path": "[variables('sshKeyPath')]",
+            "keyData": "[parameters('sshPublicKey')]"
+          }
+        ]
+      }
+    },
+    "linuxConfiguration_password": { },
+    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
+
+    "glusterScripts": {
+        "scriptsToDownload": [
+          "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/azuregfs.sh"
+        ],
+        "commandToExecute": "[concat('bash azuregfs.sh ')]"
+    },
+    "RAIDSize": "[mul(parameters('nbDataDisks'), parameters('dataDiskSize'))]",
+    "PVdiskSize": "[concat(sub(variables('RAIDSize'), div(variables('RAIDSize'), 40)),'G')]" 
+  },
+  "resources": [
+    {
+        "type": "Microsoft.Compute/availabilitySets",
+            "sku": {
+                "name": "Aligned"
+            },
+            "name": "GlusterAVSet",
+            "apiVersion": "2017-12-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "platformUpdateDomainCount": 5,
+                "platformFaultDomainCount": 2,
+                "virtualMachines": []
+            },
+        "dependsOn": []
+    },
+    {
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "[variables('DiagSAName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2015-06-15",
+        "properties": {
+          "accountType": "Standard_LRS"
+        }
+      },
+    {
+      "apiVersion": "2018-04-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('nicName'), copyindex(1))]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs",
+        "count": "[parameters('scaleNumber')]"
+      },
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('SubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": true
+      }
+    },
+    {
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs",
+        "count": "[parameters('scaleNumber')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex(1))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]",
+        "[concat('Microsoft.Compute/availabilitySets/GlusterAVSet')]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', 'GlusterAVSet')]"
+        },  
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "caching": "ReadOnly",
+            "createOption": "FromImage",
+            "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+               }
+            },
+            "copy": [{
+                "name": "dataDisks",
+                "count": "[parameters('nbDataDisks')]",
+                "input": {
+                    "lun": "[copyIndex('dataDisks')]",
+                    "createOption": "Empty",
+                    "caching": "ReadOnly",
+                    "diskSizeGB": "[parameters('datadiskSize')]"
+                }
+            }]
+          
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), copyindex(1)))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+           "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(1), '/extension')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs-extention",
+        "count": "[sub(parameters('scaleNumber'),1)]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), copyindex(1))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+            "fileUris": "[variables('glusterScripts').scriptsToDownload]"
+          },
+          "protectedSettings": {
+            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', copyindex(1), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'))]"  
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'), parameters('scaleNumber'), '/extension')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), parameters('scaleNumber'))]",
+        "gfs-extention"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+            "fileUris": "[variables('glusterScripts').scriptsToDownload]"
+          },
+          "protectedSettings": {
+            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', parameters('scaleNumber'), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'))]"  
+        }
+      }
+    }
+  ]
+}
