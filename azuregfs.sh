@@ -2,6 +2,30 @@
 
 set -x
 
+USERNAME_ORG=${6}
+PASSWORD_ACT_KEY="${7}"
+
+# Remove RHUI
+
+rm -f /etc/yum.repos.d/rh-cloud.repo
+sleep 10
+
+# Register Host with Cloud Access Subscription
+echo $(date) " - Register host with Cloud Access Subscription"
+
+subscription-manager register --username="$USERNAME_ORG" --password="$PASSWORD_ACT_KEY" || subscription-manager register --activationkey="$PASSWORD_ACT_KEY" --org="$USERNAME_ORG"
+
+if [ $? -eq 0 ]
+then
+    echo "Subscribed successfully"
+elif [ $? -eq 64 ]
+then
+    echo "This system is already registered."
+else
+    echo "Incorrect Username / Password or Organization ID / Activation Key specified"
+    exit 3
+fi
+
 NODENAME=$(hostname)
 PEERNODEPREFIX=${1}
 VOLUMENAME=${2}
@@ -179,20 +203,20 @@ configure_network() {
 
 
 install_glusterfs_centos() {
-    yum list installed glusterfs-server
-    if [ ${?} -eq 0 ];
-    then
-        return
-    fi
-    
-    if [ ! -e /etc/yum.repos.d/epel.repo ];
-    then
-        echo "Installing extra packages for enterprise linux"
-        wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-        rpm -Uvh ./epel-release-latest-7*.rpm
-        rm -f ./epel-release-latest-7*.rpm
-        #yum -y update
-    fi
+#    yum list installed glusterfs-server
+#    if [ ${?} -eq 0 ];
+#    then
+#        return
+#    fi
+#    
+#    if [ ! -e /etc/yum.repos.d/epel.repo ];
+#    then
+#        echo "Installing extra packages for enterprise linux"
+#        wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#        rpm -Uvh ./epel-release-latest-7*.rpm
+#        rm -f ./epel-release-latest-7*.rpm
+#        #yum -y update
+#    fi
 
     #yum -y install psmisc
 
@@ -229,12 +253,13 @@ install_glusterfs_centos() {
 
 configure_gluster() {
    
-        /etc/init.d/glusterd status
-        if [ ${?} -ne 0 ];
-        then
-            install_glusterfs_centos
-        fi
-        /etc/init.d/glusterd start        
+# gluster should already be installed on the Redhat images
+#        /etc/init.d/glusterd status
+#        if [ ${?} -ne 0 ];
+#        then
+#            install_glusterfs_centos
+#        fi
+#        /etc/init.d/glusterd start        
     
 
     GLUSTERDIR="${MOUNTPOINT}/brick"
