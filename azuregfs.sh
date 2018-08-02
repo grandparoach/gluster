@@ -260,7 +260,7 @@ configure_gluster() {
 #            install_glusterfs_centos
 #        fi
 #        /etc/init.d/glusterd start        
-    
+    service glusterd start
 
     GLUSTERDIR="${MOUNTPOINT}/brick"
     ls "${GLUSTERDIR}"
@@ -345,4 +345,5 @@ allow_passwordssh
     configure_network
     configure_disks
     configure_gluster
+
 
