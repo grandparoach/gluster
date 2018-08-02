@@ -259,9 +259,13 @@ configure_gluster() {
 #        then
 #            install_glusterfs_centos
 #        fi
-#        /etc/init.d/glusterd start        
+#        /etc/init.d/glusterd start
+        
     service glusterd start
-    gluster system:: uuid reset
+    gluster system:: uuid reset << EOF
+y
+EOF
+
 
     GLUSTERDIR="${MOUNTPOINT}/brick"
     ls "${GLUSTERDIR}"
