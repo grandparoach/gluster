@@ -261,6 +261,7 @@ configure_gluster() {
 #        fi
 #        /etc/init.d/glusterd start        
     service glusterd start
+    gluster system:: uuid reset
 
     GLUSTERDIR="${MOUNTPOINT}/brick"
     ls "${GLUSTERDIR}"
@@ -345,5 +346,6 @@ allow_passwordssh
     configure_network
     configure_disks
     configure_gluster
+
 
 
