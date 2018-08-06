@@ -30,6 +30,30 @@
         "description": "Name of the customized disk image"
       }
     },
+    "SharedHomeVMsku": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+      "allowedValues": [
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3"
+      ],
+      "metadata": {
+        "description": "sku to use for the master VM"
+      }
+    },
+    "GlusterWebAdminVMsku": {
+      "type": "string",
+      "defaultValue": "Standard_D16s_v3",
+      "allowedValues": [
+        "Standard_D16s_v3",
+        "Standard_D32s_v3"
+      ],
+      "metadata": {
+        "description": "sku to use for the monitor VM for Web Administration"
+      }
+    },
     "scaleNumber": {
       "type": "int",
       "defaultValue": 4,
@@ -161,6 +185,16 @@
       "metadata": {
         "description": "Gluster file system volume name"
       }
+    },
+    "OSImage": {
+      "type": "string",
+      "defaultValue": "RHEL_7.4",
+      "allowedValues": [
+        "RHEL_7.4"
+      ],
+      "metadata": {
+        "description": "The VM image of the compute nodes"
+      }
     }
   },
   "variables": {
@@ -168,7 +202,8 @@
     "DiagSAName": "[concat(uniqueString(subscription().id, resourceGroup().id), 'diag')]",
     "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
     "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
-    "imageReference": {"id": "[resourceId(parameters('imageResourceGroup'), 'Microsoft.Compute/images', parameters('imageName'))]"},
+    "glusterimageReference": {"id": "[resourceId(parameters('imageResourceGroup'), 'Microsoft.Compute/images', parameters('imageName'))]"},
+    "imageReference": "[variables('computeImages')[parameters('OSImage')]]",
     "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
     "linuxConfiguration_sshPublicKey": {
       "disablePasswordAuthentication": "true",
@@ -186,9 +221,29 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-          "https://raw.githubusercontent.com/grandparoach/gluster/rhel/azuregfs.sh"  
+         "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/azuregfs.sh" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
+    },
+    "SharedHomeScripts": {
+      "scriptsToDownload": [
+        "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/sharedhome.sh"  
+      ],
+      "commandToExecute": "[concat('bash azuregfs.sh ')]"
+    },
+    "GlusterWebAdminScripts": {
+      "scriptsToDownload": [
+        "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/webadmin.sh"  
+      ],
+      "commandToExecute": "[concat('bash azuregfs.sh ')]"
+    },
+    "computeImages": {
+      "RHEL_7.4": {
+        "publisher": "RedHat",
+        "offer": "RHEL",
+        "sku": "7.4",
+        "version": "latest"
+      }
     },
     "RAIDSize": "[mul(parameters('nbDataDisks'), parameters('dataDiskSize'))]",
     "PVdiskSize": "[concat(sub(variables('RAIDSize'), div(variables('RAIDSize'), 40)),'G')]" 
@@ -221,6 +276,76 @@
         }
       },
     {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "GlusterWebAdmin-PublicIP",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "SharedHome-PublicIP",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "SharedHome-nic",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-04-01",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/SharedHome-PublicIP')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "SharedHome-nic-ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses','SharedHome-PublicIP')]"
+              }, 
+              "subnet": {
+                "id": "[variables('SubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": true
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "GlusterWebAdmin-nic",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-04-01",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/GlusterWebAdmin-PublicIP')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "GlusterWebAdmin-nic-ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses','GlusterWebAdmin-PublicIP')]"
+              }, 
+              "subnet": {
+                "id": "[variables('SubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": true
+      }
+    },    
+    {
       "apiVersion": "2018-04-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicName'), copyindex(1))]",
@@ -244,6 +369,150 @@
           }
         ],
         "enableAcceleratedNetworking": true
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "SharedHome",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-30-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkinterfaces/SharedHome-nic')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('SharedHomeVMsku')]"
+        },
+        "osProfile": {
+          "computerName": "SharedHome",
+          "adminUsername": "[parameters('adminUserName')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "caching": "ReadOnly",
+            "createOption": "FromImage",
+             "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+             }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+               "id": "[resourceId('Microsoft.Network/networkInterfaces','SharedHome-nic')]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+           "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    
+     
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat('SharedHome', '/ext')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', 'SharedHome')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": "[variables('SharedHomeScripts').scriptsToDownload]"
+        },
+        "protectedSettings": {
+          "commandToExecute": "[variables('SharedHomeScripts').commandToExecute]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "GlusterWebAdmin",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-30-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkinterfaces/GlusterWebAdmin-nic')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('GlusterWebAdminVMsku')]"
+        },
+        "osProfile": {
+          "computerName": "GlusterWebAdmin",
+          "adminUsername": "[parameters('adminUserName')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "caching": "ReadOnly",
+            "createOption": "FromImage",
+             "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+             }
+          },
+          "copy": [{
+            "name": "monitor-dataDisks",
+            "count": 2,
+            "input": {
+              "lun": "[copyIndex('monitor-dataDisks')]",
+              "createOption": "Empty",
+              "caching": "ReadOnly",
+              "diskSizeGB": 32
+            }
+          }]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+               "id": "[resourceId('Microsoft.Network/networkInterfaces','GlusterWebAdmin-nic')]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+           "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    
+     
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat('GlusterWebAdmin', '/ext')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterWebAdmin')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": "[variables('GlusterWebAdminScripts').scriptsToDownload]"
+        },
+        "protectedSettings": {
+          "commandToExecute": "[variables('GlusterWebAdminScripts').commandToExecute]"
+        }
       }
     },
     {
@@ -274,7 +543,7 @@
           "linuxConfiguration": "[variables('linuxConfiguration')]"
         },
         "storageProfile": {
-          "imageReference": "[variables('imageReference')]",
+          "imageReference": "[variables('glusterimageReference')]",
           "osDisk": {
             "caching": "ReadOnly",
             "createOption": "FromImage",
