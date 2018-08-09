@@ -179,6 +179,12 @@
         "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/gfsclient.sh"  
       ],
       "commandToExecute": "[concat('bash gfsclient.sh ', parameters('GlusterServerPrefix'), ' ', parameters('NumberofGlusterServers'), ' ', parameters('GlusterVolumeName'))]"
+    },
+    "loginScripts": {
+      "scriptsToDownload": [
+        "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/login.sh"  
+      ],
+      "commandToExecute": "[concat('bash login.sh ', parameters('GlusterServerPrefix'), ' ', parameters('NumberofGlusterServers'), ' ', parameters('GlusterVolumeName'), ' ', variables('loginName'))]"
     }
   },  
   "resources": [
@@ -253,6 +259,29 @@
         }
       }
     },
+
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('loginName'), '/ext')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('loginName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": "[variables('loginScripts').scriptsToDownload]"
+        },
+        "protectedSettings": {
+          "commandToExecute": "[variables('loginScripts').commandToExecute]"
+        }
+      }
+    },
+
     {
         "type": "Microsoft.Compute/virtualMachineScaleSets",
         "name": "[parameters('ClusterPrefix')]",
