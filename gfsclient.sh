@@ -9,6 +9,9 @@ GLUSTERVOLUME=${3}
 MOUNTPOINT=/mnt/${GLUSTERVOLUME}
 mkdir -p ${MOUNTPOINT}
 
+yum -y install epel.release 
+yum -y install sshpass nmap
+
 #Install Gluster Fuse Client
 
 yum -y install psmisc
