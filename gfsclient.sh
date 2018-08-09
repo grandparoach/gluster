@@ -68,14 +68,6 @@ cd ior_src/
 make
 make install
 
-# Compile and install MDTest
-
-cd /glustre/software/
-git clone https://github.com/MDTEST-LANL/mdtest.git
-cd mdtest
-export MPI_CC=mpicc
-make
-
 
 # disable selinux
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
