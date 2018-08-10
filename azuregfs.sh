@@ -12,9 +12,9 @@ PVSIZE=${5}
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=128
 
-VGNAME="rhgs-data"
-LVNAME="brickpool"
-LVPARTITION="brick1"
+#VGNAME="rhgs-data"
+#LVNAME="brickpool"
+#LVPARTITION="brick1"
 
 RAIDDISK="/dev/md127"
 RAIDPARTITION="/dev/md127p1"
@@ -120,11 +120,11 @@ configure_disks() {
         
             create_raid0_centos
         
-        do_LVM_partition ${RAIDDISK}
-        PARTITION="/dev/${VGNAME}/${LVPARTITION}"
+        #do_LVM_partition ${RAIDDISK}
+        #PARTITION="/dev/${VGNAME}/${LVPARTITION}"
         
         #do_partition ${RAIDDISK}
-        #PARTITION="${RAIDPARTITION}"
+        PARTITION="${RAIDDISK}"
     else
         DISK="${DISKS[0]}"
         do_partition ${DISK}
@@ -132,13 +132,14 @@ configure_disks() {
     fi
 
     echo "Creating filesystem on ${PARTITION}."
-    mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
-    #mkfs -t ext4 ${PARTITION}
+    #mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
+    mkfs -t ext4 ${PARTITION}
     mkdir -p "${MOUNTPOINT}"
 
     #read UUID FS_TYPE < <(blkid -u filesystem ${PARTITION}|awk -F "[= ]" '{print $3" "$5}'|tr -d "\"")
     #add_to_fstab "${UUID}" "${MOUNTPOINT}"
-    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime,nouuid 0 2"  | sudo tee -a /etc/fstab 
+    #echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime,nouuid 0 2"  | sudo tee -a /etc/fstab 
+    echo -e "${PARTITION}\t${MOUNTPOINT}\text4\tdefaults,barrier=0,noatime 0 2"  | sudo tee -a /etc/fstab 
     
     echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
     #mount "${MOUNTPOINT}"
