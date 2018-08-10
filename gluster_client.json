@@ -178,13 +178,13 @@
       "scriptsToDownload": [
         "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/gfsclient.sh"  
       ],
-      "commandToExecute": "[concat('bash gfsclient.sh ', parameters('GlusterServerPrefix'), ' ', parameters('NumberofGlusterServers'), ' ', parameters('GlusterVolumeName'))]"
+      "commandToExecute": "[concat('bash gfsclient.sh ', parameters('GlusterServerPrefix'), ' ', parameters('NumberofGlusterServers'), ' ', parameters('GlusterVolumeName'), ' ', variables('loginName'))]"
     },
     "loginScripts": {
       "scriptsToDownload": [
         "https://raw.githubusercontent.com/grandparoach/azure-quickstart-templates/gluster/gluster-file-system/login.sh"  
       ],
-      "commandToExecute": "[concat('bash login.sh ', parameters('GlusterServerPrefix'), ' ', parameters('NumberofGlusterServers'), ' ', parameters('GlusterVolumeName'), ' ', variables('loginName'))]"
+      "commandToExecute": "[concat('bash login.sh ')]"
     }
   },  
   "resources": [
@@ -292,7 +292,9 @@
           "tier": "Standard",
           "capacity": "[parameters('clientNodeCount')]"
         },
-        "dependsOn": [ ],
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/', variables('loginName'),'/extensions/ext')]"
+         ],
         "properties": {
           "overprovision": false,
           "upgradePolicy": {
