@@ -4,7 +4,7 @@
   "parameters": {
     "hostOs": {
       "type": "string",
-      "defaultValue": "CentOS_7.4",
+      "defaultValue": "RHEL_7.4",
       "allowedValues": [
         "CentOS_7.4",
         "RHEL_7.4"
@@ -184,7 +184,7 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-          "https://raw.githubusercontent.com/grandparoach/gluster/nolvm/azuregfs.sh"
+          "https://raw.githubusercontent.com/grandparoach/gluster/rhel/azuregfs.sh"
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
