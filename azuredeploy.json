@@ -2,32 +2,15 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "RedhatSubscriptionID": {
+    "hostOs": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "CentOS_7.4",
+      "allowedValues": [
+        "CentOS_7.4",
+        "RHEL_7.4"
+      ],
       "metadata": {
-        "description": "Redhat Subscription ID"
-      }
-    },
-    "RedhatSubscriptionPassword": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Redhat Subscription ID"
-      }
-    },
-    "imageResourceGroup": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Resource group of the customized disk image"
-      }
-    },
-    "imageName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Name of the customized disk image"
+        "description": "OS to install on the host system"
       }
     },
     "scaleNumber": {
@@ -37,7 +20,8 @@
         2,
         4,
         6,
-        8
+        8,
+        10
       ],
       "metadata": {
         "description": "Number of nodes in the gluster file system"
@@ -168,8 +152,22 @@
     "DiagSAName": "[concat(uniqueString(subscription().id, resourceGroup().id), 'diag')]",
     "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
     "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
-    "imageReference": {"id": "[resourceId(parameters('imageResourceGroup'), 'Microsoft.Compute/images', parameters('imageName'))]"},
+    "imageReference": "[variables('computeImages')[parameters('hostOS')]]",
     "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
+    "computeImages": {
+        "CentOS_7.4": {
+          "publisher": "OpenLogic",
+          "offer": "CentOS",
+          "sku": "7.4",
+          "version": "latest"
+        },
+        "RHEL_7.4": {
+          "publisher": "Redhat",
+          "offer": "RHEL",
+          "sku": "7.4",
+          "version": "latest"
+        }
+    },
     "linuxConfiguration_sshPublicKey": {
       "disablePasswordAuthentication": "true",
       "ssh": {
@@ -186,7 +184,7 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-          "https://raw.githubusercontent.com/grandparoach/gluster/rhel/azuregfs.sh"  
+          "https://raw.githubusercontent.com/grandparoach/gluster/nolvm/azuregfs.sh"
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
@@ -330,7 +328,7 @@
             "fileUris": "[variables('glusterScripts').scriptsToDownload]"
           },
           "protectedSettings": {
-            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', copyindex(1), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'), ' ', parameters('RedhatSubscriptionID'), ' ', parameters('RedhatSubscriptionPassword'))]"  
+            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', copyindex(1), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'))]"  
         }
       }
     },
@@ -352,7 +350,7 @@
             "fileUris": "[variables('glusterScripts').scriptsToDownload]"
           },
           "protectedSettings": {
-            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', parameters('scaleNumber'), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'), ' ', parameters('RedhatSubscriptionID'), ' ', parameters('RedhatSubscriptionPassword'))]"  
+            "commandToExecute": "[concat('bash azuregfs.sh ', parameters('vmNamePrefix'), ' ', parameters('volumeName'), ' ', parameters('scaleNumber'), ' ', parameters('scaleNumber'), ' ', variables('PVdiskSize'))]"  
         }
       }
     }
