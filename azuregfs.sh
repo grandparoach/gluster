@@ -143,7 +143,7 @@ install_glusterfs() {
     subscription-manager repos --enable=rhel-7-server-rpms
     subscription-manager repos --enable=rh-gluster-3-for-rhel-7-server-rpms
     
-    yum install redhat-storage-server
+    yum -y install redhat-storage-server
     
 
 }
