@@ -219,36 +219,6 @@ EOF
 }
 
 
-configure_nagios() {
-   
-    setsebool -P logging_syslogd_run_nagios_plugins on
-    setsebool -P nagios_run_sudo on
-
-    sed -i 's/allowed_hosts=127.0.0.1/allowed_hosts=127.0.0.1, "${PEERNODEPREFIX}${NODECOUNT}"/' /etc/nagios/nrpe.cfg
-    service glusterd start
-    gluster system:: uuid reset << EOF
-y
-EOF
-
-
-    GLUSTERDIR="${MOUNTPOINT}/brick"
-    ls "${GLUSTERDIR}"
-    if [ ${?} -ne 0 ];
-    then
-        mkdir "${GLUSTERDIR}"
-    fi
-
-    if [ $NODEINDEX -lt $(($NODECOUNT)) ];
-    then
-        return
-    fi
-    
-    allNodes="${NODENAME}:${GLUSTERDIR}"
-    retry=10
-    failed=1
-    while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
-    
-}
 
 configure_tendrl() {
    
