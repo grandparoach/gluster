@@ -124,6 +124,9 @@ configure_disks() {
 
 open_ports() {
     firewall-cmd --zone=trusted --add-service=glusterfs --permanent
+    firewall-cmd --zone=public --add-service=glusterfs --permanent
+    firewall-cmd --reload
+
 }
 
 
