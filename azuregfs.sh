@@ -2,6 +2,11 @@
 
 set -x
 
+#disable_selinux
+sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
+setenforce 0
+
+
 USERNAME_ORG=${6}
 PASSWORD_ACT_KEY="${7}"
 
@@ -122,18 +127,10 @@ open_ports() {
 }
 
 
-disable_selinux_centos() {
-    sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
-    setenforce 0
-}
 
 
 
-configure_network() {
-    open_ports
-    disable_selinux_centos
-    
-}
+
 
 
 install_glusterfs() {
@@ -145,6 +142,7 @@ install_glusterfs() {
     
     yum -y install redhat-storage-server
     
+    open_ports
 
 }
 
@@ -247,9 +245,6 @@ allow_passwordssh() {
 # temporary workaround form CRP 
 allow_passwordssh  
 
-
-    configure_network
-    configure_disks
-    configure_gluster
-
+configure_disks
+configure_gluster
 
