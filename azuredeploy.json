@@ -4,9 +4,10 @@
   "parameters": {
     "hostOs": {
       "type": "string",
-      "defaultValue": "RHEL_7.4",
+      "defaultValue": "RHEL_7.5",
       "allowedValues": [
-        "RHEL_7.4"
+        "RHEL_7.4",
+        "RHEL_7.5"
       ],
       "metadata": {
         "description": "OS to install on the host system"
@@ -196,6 +197,12 @@
           "publisher": "Redhat",
           "offer": "RHEL",
           "sku": "7.4",
+          "version": "latest"
+        },
+        "RHEL_7.5": {
+          "publisher": "Redhat",
+          "offer": "RHEL",
+          "sku": "7.5",
           "version": "latest"
         }
     },
