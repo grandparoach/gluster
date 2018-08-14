@@ -21,10 +21,10 @@
       }
     },
     "RedhatSubscriptionPassword": {
-      "type": "string",
+      "type": "securestring",
       "defaultValue": "",
       "metadata": {
-        "description": "Redhat Subscription ID"
+        "description": "Redhat Subscription password"
       }
     },
     "GlusterWebAdminVMsku": {
@@ -203,7 +203,7 @@
       "scriptsToDownload": [
         "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/webadmin.sh"  
       ],
-      "commandToExecute": "[concat('bash azuregfs.sh ')]"
+      "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
     "computeImages": {
       "RHEL_7.4": {
@@ -382,7 +382,7 @@
           "fileUris": "[variables('GlusterWebAdminScripts').scriptsToDownload]"
         },
         "protectedSettings": {
-          "commandToExecute": "[variables('GlusterWebAdminScripts').commandToExecute]"
+          "commandToExecute": "[concat('bash webadmin.sh ', parameters('adminUsername'), ' ', parameters('adminPassword'), ' ',parameters('vmNamePrefix'), ' ',  parameters('scaleNumber'), ' ', parameters('RedhatSubscriptionID'), ' ', parameters('RedhatSubscriptionPassword'))]" 
         }
       }
     },
