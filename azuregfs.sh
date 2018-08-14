@@ -7,8 +7,8 @@ sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
 
-USERNAME_ORG=${6}
-PASSWORD_ACT_KEY="${7}"
+USERNAME_ORG=${5}
+PASSWORD_ACT_KEY="${6}"
 
 # Remove RHUI
 
@@ -36,7 +36,6 @@ PEERNODEPREFIX=${1}
 VOLUMENAME=${2}
 NODEINDEX=${3}
 NODECOUNT=${4}
-PVSIZE=${5}
 
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=128
