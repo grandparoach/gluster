@@ -2,42 +2,13 @@
 
 set -x
 
+#disable_selinux
+sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
+setenforce 0
+
+
 USERNAME_ORG=${6}
 PASSWORD_ACT_KEY="${7}"
-SHAREDHOMESERVER=${8}
-
-SHARE_HOME=/share/home
-mkdir -p /share
-mkdir -p $SHARE_HOME
-
-# User
-HPC_USER=hpcuser
-HPC_UID=7007
-HPC_GROUP=hpc
-HPC_GID=7007
-
-
-setup_user()
-{  
-
-    yum -y install nfs-utils nfs-utils-lib
-
-	echo "$SHAREDHOMESERVER:$SHARE_HOME $SHARE_HOME    nfs4    rw,auto,_netdev 0 0" >> /etc/fstab
-	mount -a
-	mount
-   
-    groupadd -g $HPC_GID $HPC_GROUP
-
-    # Don't require password for HPC user sudo
-    echo "$HPC_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-    
-    # Disable tty requirement for sudo
-    sed -i 's/^Defaults[ ]*requiretty/# Defaults requiretty/g' /etc/sudoers
-
-	useradd -c "HPC User" -g $HPC_GROUP -d $SHARE_HOME/$HPC_USER -s /bin/bash -u $HPC_UID $HPC_USER
-
-    chown $HPC_USER:$HPC_GROUP $SHARE_DATA	
-}
 
 # Remove RHUI
 
@@ -70,12 +41,8 @@ PVSIZE=${5}
 MOUNTPOINT="/datadrive"
 RAIDCHUNKSIZE=128
 
-VGNAME="rhgs-data"
-LVNAME="brickpool"
-LVPARTITION="brick1"
-
 RAIDDISK="/dev/md127"
-RAIDPARTITION="/dev/md127p1"
+
 # An set of disks to ignore from partitioning and formatting
 BLACKLIST="/dev/sda|/dev/sdb"
 
@@ -111,43 +78,6 @@ create_raid0_centos() {
     mdadm --detail --verbose --scan > /etc/mdadm.conf
 }
 
-do_LVM_partition() {
-    
-    pvcreate --dataalignment 1024K ${1}
-    vgcreate --physicalextentsize 256K ${VGNAME} ${1}
-    lvcreate -L ${PVSIZE} -T ${VGNAME}/${LVNAME} -c 256K 
-    lvchange --zero n ${VGNAME}/${LVNAME} 
-    lvcreate -V ${PVSIZE} -T ${VGNAME}/${LVNAME} -n ${LVPARTITION} 
-    
-
-}
-
-
-
-do_partition() {
-# This function creates one (1) primary partition on the
-# disk, using all available space
-    DISK=${1}
-    echo "Partitioning disk $DISK"
-    echo "n
-p
-1
-
-
-w
-" | fdisk "${DISK}" 
-#> /dev/null 2>&1
-
-#
-# Use the bash-specific $PIPESTATUS to ensure we get the correct exit code
-# from fdisk and not from echo
-if [ ${PIPESTATUS[1]} -ne 0 ];
-then
-    echo "An error occurred partitioning ${DISK}" >&2
-    echo "I cannot continue" >&2
-    exit 2
-fi
-}
 
 add_to_fstab() {
     UUID=${1}
@@ -173,132 +103,59 @@ configure_disks() {
     declare -i DISKCOUNT
     DISKCOUNT=$(get_disk_count) 
     echo "Disk count is $DISKCOUNT"
-    if [ $DISKCOUNT -gt 1 ];
-    then
+            
+    create_raid0_centos
         
-            create_raid0_centos
-        
-        do_LVM_partition ${RAIDDISK}
-        PARTITION="/dev/${VGNAME}/${LVPARTITION}"
-        
-        #do_partition ${RAIDDISK}
-        #PARTITION="${RAIDPARTITION}"
-    else
-        DISK="${DISKS[0]}"
-        do_partition ${DISK}
-        PARTITION=$(fdisk -l ${DISK}|grep -A 1 Device|tail -n 1|awk '{print $1}')
-    fi
-
+    PARTITION="${RAIDDISK}"
+    
     echo "Creating filesystem on ${PARTITION}."
-    mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
-    #mkfs -t ext4 ${PARTITION}
+     
+    mkfs -t ext4 ${PARTITION}
     mkdir -p "${MOUNTPOINT}"
 
-    #read UUID FS_TYPE < <(blkid -u filesystem ${PARTITION}|awk -F "[= ]" '{print $3" "$5}'|tr -d "\"")
     #add_to_fstab "${UUID}" "${MOUNTPOINT}"
-    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime,nouuid 0 2"  | sudo tee -a /etc/fstab 
+    echo -e "${PARTITION}\t${MOUNTPOINT}\text4\tdefaults,barrier=0,noatime 0 2"  | sudo tee -a /etc/fstab 
     
     echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
     #mount "${MOUNTPOINT}"
     mount -a && mount 
 }
 
+
 open_ports() {
-    firewall-cmd --zone=trusted --add-service=glusterfs --permanent
-}
-
-
-disable_selinux_centos() {
-    sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
-    setenforce 0
-}
-
-activate_secondnic_centos() {
-    if [ -n "$SECONDNIC" ];
-    then
-        cp /etc/sysconfig/network-scripts/ifcfg-eth0 "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
-        sed -i "s/^DEVICE=.*/DEVICE=${SECONDNIC}/I" "/etc/sysconfig/network-scripts/ifcfg-${SECONDNIC}"
-        defaultgw=$(ip route show |sed -n "s/^default via //p")
-        declare -a gateway=(${defaultgw// / })
-        sed -i "\$aGATEWAY=${gateway[0]}" /etc/sysconfig/network
-        service network restart
-    fi
-}
-
-
-
-configure_network() {
-    open_ports
-    
-        activate_secondnic_centos
-        disable_selinux_centos
-    
-}
-
-
-install_glusterfs_centos() {
-#    yum list installed glusterfs-server
-#    if [ ${?} -eq 0 ];
-#    then
-#        return
-#    fi
-#    
-#    if [ ! -e /etc/yum.repos.d/epel.repo ];
-#    then
-#        echo "Installing extra packages for enterprise linux"
-#        wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-#        rpm -Uvh ./epel-release-latest-7*.rpm
-#        rm -f ./epel-release-latest-7*.rpm
-#        #yum -y update
-#    fi
-
-    #yum -y install psmisc
-
-    echo "installing gluster"
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-libs-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-libs-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-cli-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-cli-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-client-xlators-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-client-xlators-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-api-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-api-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-fuse-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-fuse-4.1.1-1.el7.x86_64.rpm
-    #wget --no-cache https://buildlogs.centos.org/centos/7/storage/x86_64/gluster-4.1/glusterfs-server-4.1.1-1.el7.x86_64.rpm
-    #rpm -i glusterfs-server-4.1.1-1.el7.x86_64.rpm
-    
-    yum -y install centos-release-gluster
-    yum -y install  glusterfs-cli glusterfs-geo-replication glusterfs-fuse glusterfs-server glusterfs  
    
-    #mv glusterfs-epel.repo  /etc/yum.repos.d/
-    #yum -y update
+    firewall-cmd --zone=public --add-service=glusterfs --permanent
+    firewall-cmd --reload
+
+}
+
+
+
+
+
+
+
+
+install_glusterfs() {
+
+    subscription-manager attach --pool=8a85f9875f7334a1015f74b579f67798
+    subscription-manager repos --disable "*"
+    subscription-manager repos --enable=rhel-7-server-rpms
+    subscription-manager repos --enable=rh-gluster-3-for-rhel-7-server-rpms
     
-    systemctl enable glusterd.service 
-    systemctl enable glusterfsd.service 
-    systemctl start glusterd.service 
-    systemctl start glusterfsd.service 
-    systemctl status glusterfsd.service 
-    systemctl status glusterd.service 
+    yum -y install redhat-storage-server
+    
+    open_ports
 
 }
 
 configure_gluster() {
    
-# gluster should already be installed on the Redhat images
-#        /etc/init.d/glusterd status
-#        if [ ${?} -ne 0 ];
-#        then
-#            install_glusterfs_centos
-#        fi
-#        /etc/init.d/glusterd start
-        
+    install_glusterfs
     service glusterd start
-    gluster system:: uuid reset << EOF
-y
-EOF
+    #gluster system:: uuid reset << EOF
+#y
+#EOF
 
 
     GLUSTERDIR="${MOUNTPOINT}/brick"
@@ -313,7 +170,9 @@ EOF
         return
     fi
     
-    allNodes="${NODENAME}:${GLUSTERDIR}"
+    DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
+
+    allNodes="${NODENAME}.${DNSsuffix}:${GLUSTERDIR}"
     retry=10
     failed=1
     while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
@@ -336,7 +195,7 @@ EOF
                 echo "gluster peer status ${PEERNODEPREFIX}${index} failed"
             fi
             if [ $retry -eq 10 ]; then
-                allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
+                allNodes="${allNodes} ${PEERNODEPREFIX}${index}.${DNSsuffix}:${GLUSTERDIR}"
             fi
             let index++
         done
@@ -362,6 +221,19 @@ EOF
 
 }
 
+
+configure_tendrl() {
+
+    rm -f /etc/machine-id
+    systemd-machine-id-setup
+
+    firewall-cmd --permanent --zone=public --add-port=8697/tcp
+    firewall-cmd --reload
+
+    subscription-manager repos --enable=rh-gluster-3-web-admin-agent-for-rhel-7-server-rpms
+    
+}
+
 allow_passwordssh() {
     grep -q '^PasswordAuthentication yes' /etc/ssh/sshd_config
     if [ ${?} -eq 0 ];
@@ -380,11 +252,9 @@ allow_passwordssh() {
 # temporary workaround form CRP 
 allow_passwordssh  
 
-
-    configure_network
-    configure_disks
-    configure_gluster
-    setup_user
+configure_disks
+configure_gluster
+configure_tendrl
 
 
 
