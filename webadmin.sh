@@ -8,10 +8,9 @@ setenforce 0
 adminUsername=${1}
 adminPassword=${2}
 PEERNODEPREFIX=${3}
-NODEINDEX=${4}
-NODECOUNT=${5}
-USERNAME_ORG=${6}
-PASSWORD_ACT_KEY="${7}"
+NODECOUNT=${4}
+USERNAME_ORG=${5}
+PASSWORD_ACT_KEY="${6}"
 
 # Remove RHUI
 
