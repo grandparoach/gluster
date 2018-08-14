@@ -338,13 +338,13 @@
              }
           },
           "copy": [{
-            "name": "monitor-dataDisks",
+            "name": "dataDisks",
             "count": 2,
             "input": {
-              "lun": "[copyIndex('monitor-dataDisks')]",
+              "lun": "[copyIndex('dataDisks')]",
               "createOption": "Empty",
               "caching": "ReadOnly",
-              "diskSizeGB": 64
+              "diskSizeGB": 32
             }
           }]
         },
