@@ -254,5 +254,5 @@ allow_passwordssh
 
 configure_disks
 configure_gluster
-
+configure_tendrl
 
