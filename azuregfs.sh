@@ -179,8 +179,8 @@ configure_gluster() {
         index=1
         echo retrying $retry >> /tmp/error
         while [ $index -lt $(($NODECOUNT)) ]; do
-            ping -c 3 "${PEERNODEPREFIX}${index}" > /tmp/error
-            gluster peer probe "${PEERNODEPREFIX}${index}" >> /tmp/error
+            ping -c 3 "${PEERNODEPREFIX}${index}.${DNSsuffix}" > /tmp/error
+            gluster peer probe "${PEERNODEPREFIX}${index}.${DNSsuffix}" >> /tmp/error
             if [ ${?} -ne 0 ];
             then
                 failed=1
@@ -254,6 +254,4 @@ allow_passwordssh
 configure_disks
 configure_gluster
 configure_tendrl
-
-
 
