@@ -123,7 +123,7 @@ configure_disks() {
 
 
 open_ports() {
-    firewall-cmd --zone=trusted --add-service=glusterfs --permanent
+   
     firewall-cmd --zone=public --add-service=glusterfs --permanent
     firewall-cmd --reload
 
@@ -170,7 +170,9 @@ configure_gluster() {
         return
     fi
     
-    allNodes="${NODENAME}:${GLUSTERDIR}"
+    DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
+
+    allNodes="${NODENAME}${DNSsuffix}:${GLUSTERDIR}"
     retry=10
     failed=1
     while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
@@ -193,7 +195,7 @@ configure_gluster() {
                 echo "gluster peer status ${PEERNODEPREFIX}${index} failed"
             fi
             if [ $retry -eq 10 ]; then
-                allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
+                allNodes="${allNodes} ${PEERNODEPREFIX}${index}${DNSsuffix}:${GLUSTERDIR}"
             fi
             let index++
         done
@@ -220,12 +222,14 @@ EOF
 }
 
 
-
 configure_tendrl() {
-   
-    firewall-cmd --permanent --zone=public --add-port=8697/tcp
+    
+    rm -f /etc/machine-id
+    systemd-machine-id-setup
 
-    subscription-manager repos --enable=rhel-7-server-rpms --enable=rh-gluster-3-for-rhel-7-server-rpms
+    firewall-cmd --permanent --zone=public --add-port=8697/tcp
+    firewall-cmd --reload
+
     subscription-manager repos --enable=rh-gluster-3-web-admin-agent-for-rhel-7-server-rpms
     
 }
@@ -250,4 +254,5 @@ allow_passwordssh
 
 configure_disks
 configure_gluster
+
 
