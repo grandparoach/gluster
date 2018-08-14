@@ -172,7 +172,7 @@ configure_gluster() {
     
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
 
-    allNodes="${NODENAME}${DNSsuffix}:${GLUSTERDIR}"
+    allNodes="${NODENAME}.${DNSsuffix}:${GLUSTERDIR}"
     retry=10
     failed=1
     while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
@@ -195,7 +195,7 @@ configure_gluster() {
                 echo "gluster peer status ${PEERNODEPREFIX}${index} failed"
             fi
             if [ $retry -eq 10 ]; then
-                allNodes="${allNodes} ${PEERNODEPREFIX}${index}${DNSsuffix}:${GLUSTERDIR}"
+                allNodes="${allNodes} ${PEERNODEPREFIX}${index}.${DNSsuffix}:${GLUSTERDIR}"
             fi
             let index++
         done
