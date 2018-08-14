@@ -202,7 +202,7 @@
         "RHEL_7.5": {
           "publisher": "Redhat",
           "offer": "RHEL",
-          "sku": "7.5",
+          "sku": "7-RAW",
           "version": "latest"
         }
     },
