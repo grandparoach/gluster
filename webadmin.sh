@@ -100,18 +100,36 @@ mount -a
 
 configure_ssh() {
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
+    cd /home/$adminUsername
+    runuser -u $adminUsername ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ""
 
-runuser 
-ssh-copy-id sroach@glusterVM4
+index=1    
+    while [ $index -le $(($NODECOUNT)) ]; do    
+        runuser -u $adminUsername ./ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
+        let index++
+    done
+}
+
+edit_hosts_file() {
+    echo " " >> /etc/ansible/hosts
+    DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
+    echo "[tendrl-server]" >> /etc/ansible/hosts
+    echo "`hostname`.$DNSsuffix ansible_user=$adminUsername" >> /etc/ansible/hosts
+    echo " " >> /etc/ansible/hosts
+    echo "[gluster-servers]" >> /etc/ansible/hosts
+    index=1    
+    while [ $index -le $(($NODECOUNT)) ]; do    
+        echo "$PEERNODEPREFIX$index.$DNSsuffix ansible_user=$adminUsername" >> /etc/ansible/hosts
+        let index++
+    done
 
 }
 
 format_disks
 install_tendrl
 open_ports
-#configure_ssh
+configure_ssh
+edit_hosts_file
 
-
-# edit /etc/ansible/hosts
 # copy site.yml
 # run the playbook
