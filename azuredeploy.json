@@ -195,7 +195,7 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/azuregfs.sh", 
          "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/ssh_copy_id.exp" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
