@@ -100,7 +100,7 @@ mount -a
 
 configure_ssh() {
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
-    cd /home/$adminUsername
+    # cd /home/$adminUsername
     runuser -u $adminUsername ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ""
 
 index=1    
