@@ -374,7 +374,8 @@
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterWebAdmin')]"
+        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterWebAdmin')]",
+        "[concat(parameters('vmNamePrefix'), parameters('scaleNumber'), '/extension')]"
       ],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
