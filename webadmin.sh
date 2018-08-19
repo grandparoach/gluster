@@ -99,13 +99,17 @@ mount -a
 
 
 configure_ssh() {
+    yum -y install sshpass
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
-    #cd /home/$adminUsername
     runuser -c "ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ''" - $adminUsername
 
 index=1    
     while [ $index -le $(($NODECOUNT)) ]; do    
-        runuser -u $adminUsername ./ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
+        #runuser -u $adminUsername ./ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "mkdir .ssh && chmod 700 .ssh"
+        cat /home/$adminUsername/.ssh/id_rsa.pub | sshpass -p $adminPassword ssh -o ConnectTimeout=2  $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'cat >> .ssh/authorized_keys'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 700 .ssh/'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 640 .ssh/authorized_keys'
         let index++
     done
 }
