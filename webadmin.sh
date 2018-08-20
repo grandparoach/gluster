@@ -99,27 +99,31 @@ mount -a
 
 
 configure_ssh() {
-    yum -y install sshpass
+
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
     runuser -c "ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ''" - $adminUsername
-    touch /home/$adminUsername/.ssh/config
-    echo 'Host *' >> /home/$adminUsername/.ssh/config
-    echo 'StrictHostKeyChecking no' >> /home/$adminUsername/.ssh/config
-    chmod 400 /home/$adminUsername/.ssh/config
-    chown $adminUsername:$adminUsername /home/$adminUsername/.ssh/config 
+    #touch /home/$adminUsername/.ssh/config
+    #echo 'Host *' >> /home/$adminUsername/.ssh/config
+    #echo 'StrictHostKeyChecking no' >> /home/$adminUsername/.ssh/config
+    #chmod 400 /home/$adminUsername/.ssh/config
+    #chown $adminUsername:$adminUsername /home/$adminUsername/.ssh/config
+    cp ssh_copy_id.exp /home/$adminUsername 
+    chown $adminUsername:$adminUsername /home/$adminUsername/ssh_copy_id.exp 
+    chmod 777 /home/$adminUsername/ssh_copy_id.exp
 
 index=1    
     while [ $index -le $(($NODECOUNT)) ]; do    
-        #runuser -u $adminUsername ./ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "mkdir .ssh && chmod 700 .ssh"
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/$adminUsername/.ssh/config'
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo 'Host *' >> /home/$adminUsername/.ssh/config'
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "echo 'StrictHostKeyChecking no' >> /home/$adminUsername/.ssh/config"
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 400 /home/$adminUsername/.ssh/config'
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chown $adminUsername:$adminUsername /home/$adminUsername/.ssh/config'
-        cat /home/$adminUsername/.ssh/id_rsa.pub | sshpass -p $adminPassword ssh -o ConnectTimeout=2  $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'cat >> .ssh/authorized_keys'
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 700 .ssh/'
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 640 .ssh/authorized_keys'
+        runuser -u $adminUsername /home/$adminUsername/ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "mkdir .ssh && chmod 700 .ssh"
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/'$adminUsername'/.ssh/config'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "Host *" >  /home/'$adminUsername'/.ssh/config'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "StrictHostKeyChecking no" >> /home/'$adminUsername'/.ssh/config'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 400 /home/'$adminUsername'/.ssh/config'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chown '$adminUsername:$adminUsername' /home/'$adminUsername'/.ssh/config'
+        #cat /home/$adminUsername/.ssh/id_rsa.pub | sshpass -p $adminPassword ssh -o ConnectTimeout=2  $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'cat >> .ssh/authorized_keys'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 700 .ssh/'
+        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 640 .ssh/authorized_keys'
+        #sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 
         let index++
     done
 }
