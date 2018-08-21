@@ -114,17 +114,16 @@ configure_ssh() {
 index=1    
     while [ $index -le $(($NODECOUNT)) ]; do    
         #runuser -u $adminUsername /home/$adminUsername/ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
-        sshpass -p $adminPassword ssh-copy-id -o "StrictHostKeyChecking no" -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 
+        sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o "StrictHostKeyChecking no" -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 
         #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "mkdir .ssh && chmod 700 .ssh"
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "Host *" >  /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "StrictHostKeyChecking no" >> /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 400 /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chown '$adminUsername:$adminUsername' /home/'$adminUsername'/.ssh/config'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/'$adminUsername'/.ssh/config'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "Host *" >  /home/'$adminUsername'/.ssh/config'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "StrictHostKeyChecking no" >> /home/'$adminUsername'/.ssh/config'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 400 /home/'$adminUsername'/.ssh/config'
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chown '$adminUsername:$adminUsername' /home/'$adminUsername'/.ssh/config'
         #cat /home/$adminUsername/.ssh/id_rsa.pub | sshpass -p $adminPassword ssh -o ConnectTimeout=2  $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'cat >> .ssh/authorized_keys'
         #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 700 .ssh/'
         #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 640 .ssh/authorized_keys'
-        #sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 
         let index++
     done
 }
@@ -152,3 +151,4 @@ edit_hosts_file
 
 # copy site.yml
 # run the playbook
+
