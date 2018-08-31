@@ -152,6 +152,8 @@ install_glusterfs() {
     subscription-manager repos --enable=rh-gluster-3-for-rhel-7-server-rpms
     
     yum -y install redhat-storage-server
+
+    yum -y install gstatus
     
     open_ports
 
@@ -263,5 +265,6 @@ allow_passwordssh
 configure_disks
 configure_gluster
 configure_tendrl
+
 
 
