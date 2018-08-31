@@ -7,8 +7,8 @@ sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
 
-USERNAME_ORG=${6}
-PASSWORD_ACT_KEY="${7}"
+USERNAME_ORG=${5}
+PASSWORD_ACT_KEY="${6}"
 
 # Remove RHUI
 
@@ -36,16 +36,13 @@ PEERNODEPREFIX=${1}
 VOLUMENAME=${2}
 NODEINDEX=${3}
 NODECOUNT=${4}
-PVSIZE=${5}
+
 MOUNTPOINT="/datadrive"
-RAIDCHUNKSIZE=128
 
-VGNAME="rhgs-data"
-LVNAME="brickpool"
-LVPARTITION="brick1"
+VGNAME="glusterVG"
+LVPOOLNAME="thinpool"
+BRICKLV="brickLV"
 
-RAIDDISK="/dev/md127"
-RAIDPARTITION="/dev/md127p1"
 
 # An set of disks to ignore from partitioning and formatting
 BLACKLIST="/dev/sda|/dev/sdb"
@@ -76,20 +73,17 @@ get_disk_count() {
 }
 
 
-create_raid0_centos() {
-    echo "Creating raid0"
-    yes | mdadm --create "$RAIDDISK" --name=data --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices="$DISKCOUNT" "${DISKS[@]}"
-    mdadm --detail --verbose --scan > /etc/mdadm.conf
-}
+
 
 do_LVM_partition() {
     
-    pvcreate --dataalignment 1024K ${1}
-    vgcreate --physicalextentsize 256K ${VGNAME} ${1}
-    lvcreate -L ${PVSIZE} -T ${VGNAME}/${LVNAME} -c 256K 
-    lvchange --zero n ${VGNAME}/${LVNAME} 
-    lvcreate -V ${PVSIZE} -T ${VGNAME}/${LVNAME} -n ${LVPARTITION} 
-    
+   pvcreate --dataalignment 256K ${DISKS[@]}
+   vgcreate ${VGNAME} ${DISKS[@]}
+   lvcreate --thin ${VGNAME}/${LVPOOLNAME} --extents 100%FREE --chunksize 256k --poolmetadatasize 16G --zero n
+   lvpoolsize=$(lvdisplay | grep Current | rev | cut -d " " -f1 | rev)
+   let lvsize=($lvpoolsize * 388 / 100000)
+   lvcreate --thin --name ${BRICKLV} --virtualsize "${lvsize}G" ${VGNAME}/${LVPOOLNAME}
+ 
 
 }
 
@@ -120,12 +114,10 @@ configure_disks() {
     DISKCOUNT=$(get_disk_count) 
     echo "Disk count is $DISKCOUNT"
             
-    create_raid0_centos
-    do_LVM_partition ${RAIDDISK}
-        PARTITION="/dev/${VGNAME}/${LVPARTITION}"
-        
-        
     
+    do_LVM_partition ${DISKS[@]}
+    PARTITION="/dev/${VGNAME}/${BRICKLV}"
+        
     
     echo "Creating filesystem on ${PARTITION}."
     mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
@@ -134,7 +126,7 @@ configure_disks() {
     mkdir -p "${MOUNTPOINT}"
 
     #add_to_fstab "${UUID}" "${MOUNTPOINT}"
-    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime,nouuid 0 2"  | sudo tee -a /etc/fstab 
+    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
     
     echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
     #mount "${MOUNTPOINT}"
@@ -148,10 +140,6 @@ open_ports() {
     firewall-cmd --reload
 
 }
-
-
-
-
 
 
 
