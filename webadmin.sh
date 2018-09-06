@@ -39,6 +39,7 @@ subscription-manager attach --pool=8a85f9875f7334a1015f74b57adf779e
 subscription-manager repos --disable="*" 
 subscription-manager repos --enable=rhel-7-server-rpms
 subscription-manager repos --enable=rh-gluster-3-web-admin-server-for-rhel-7-server-rpms
+subscription-manager repos --enable=rhel-7-server-ansible-2-rpms
 
 yum -y install ansible tendrl-ansible
 
@@ -116,7 +117,7 @@ index=1
     while [ $index -le $(($NODECOUNT)) ]; do    
         #runuser -u $adminUsername /home/$adminUsername/ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
         #sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o "StrictHostKeyChecking no" -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 
-        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix "mkdir .ssh && chmod 700 .ssh"
+        sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'mkdir /home/'$adminUsername'/.ssh && chmod 700 /home/'$adminUsername'/.ssh'
         sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/'$adminUsername'/.ssh/config'
         sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "Host *" >  /home/'$adminUsername'/.ssh/config'
         sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "StrictHostKeyChecking no" >> /home/'$adminUsername'/.ssh/config'
