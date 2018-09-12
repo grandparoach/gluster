@@ -93,11 +93,6 @@ mount -a
 
 }
 
-#edit /etc/ansible/hosts
-# copy site.yml
-# run the playbook
-
-
 
 configure_ssh() {
 
@@ -131,26 +126,38 @@ index=1
     done
 }
 
-edit_hosts_file() {
-    echo " " >> /etc/ansible/hosts
+edit_inventory_file() {
+    cp /etc/ansible/hosts /home/$adminUsername/inventory
+    chown $adminUsername:$adminUsername /home/$adminUsername/inventory
+    echo " " >> /home/$adminUsername/inventory
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
-    echo "[tendrl-server]" >> /etc/ansible/hosts
-    echo "`hostname`.$DNSsuffix ansible_user=$adminUsername" >> /etc/ansible/hosts
-    echo " " >> /etc/ansible/hosts
-    echo "[gluster-servers]" >> /etc/ansible/hosts
+    echo "[tendrl_server]" >> /home/$adminUsername/inventory
+    echo "`hostname`.$DNSsuffix ansible_user=$adminUsername" >> /home/$adminUsername/inventory
+    echo " " >> /home/$adminUsername/inventory
+    echo "[gluster_servers]" >> /home/$adminUsername/inventory
     index=1    
     while [ $index -le $(($NODECOUNT)) ]; do    
-        echo "$PEERNODEPREFIX$index.$DNSsuffix ansible_user=$adminUsername" >> /etc/ansible/hosts
+        echo "$PEERNODEPREFIX$index.$DNSsuffix ansible_user=$adminUsername" >> /home/$adminUsername/inventory
         let index++
     done
+    echo " " >> /home/$adminUsername/inventory
+    echo "[all:vars]" >> /home/$adminUsername/inventory
+    echo "etcd_ip_address=`hostname -I`" >> /home/$adminUsername/inventory
+    echo "etcd_fqdn=`hostname -I`.$DNSsuffix" >> /home/$adminUsername/inventory
+    echo "graphite_fqdn=`hostname -I`.$DNSsuffix" >> /home/$adminUsername/inventory
 
 }
+
+# enable passwordless sudo
+sed --in-place 's/ALL=(ALL)\s\+ALL/ALL=(ALL)  NOPASSWD: ALL/' /etc/sudoers.d/waagent
+
 
 format_disks
 install_tendrl
 open_ports
 configure_ssh
-edit_hosts_file
+edit_inventory_file
+
 
 # copy site.yml
 # run the playbook
