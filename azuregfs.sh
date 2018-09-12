@@ -150,6 +150,9 @@ install_glusterfs() {
     subscription-manager repos --disable "*"
     subscription-manager repos --enable=rhel-7-server-rpms
     subscription-manager repos --enable=rh-gluster-3-for-rhel-7-server-rpms
+    subscription-manager repos --enable=rhel-7-server-ansible-2-rpms
+
+    
     
     yum -y install redhat-storage-server
 
@@ -265,6 +268,4 @@ allow_passwordssh
 configure_disks
 configure_gluster
 configure_tendrl
-
-
 
