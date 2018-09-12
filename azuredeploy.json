@@ -338,16 +338,18 @@
                 "storageAccountType": "Premium_LRS"
              }
           },
-          "copy": [{
-            "name": "dataDisks",
-            "count": 2,
-            "input": {
-              "lun": "[copyIndex('dataDisks')]",
-              "createOption": "Empty",
-              "caching": "ReadOnly",
-              "diskSizeGB": 32
+          "dataDisks": [
+            {
+              "diskSizeGB": 32,
+              "lun": 0,
+              "createOption": "Empty"
+            },
+            {
+              "diskSizeGB": 512,
+              "lun": 1,
+              "createOption": "Empty"
             }
-          }]
+          ]
         },
         "networkProfile": {
           "networkInterfaces": [
