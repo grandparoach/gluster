@@ -260,6 +260,8 @@ allow_passwordssh() {
     
 }
 
+# enable passwordless sudo
+sed --in-place 's/ALL=(ALL)\s\+ALL/ALL=(ALL)  NOPASSWD: ALL/' /etc/sudoers.d/waagent
 
 
 # temporary workaround form CRP 
