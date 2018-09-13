@@ -95,7 +95,8 @@ mount -a
 
 
 configure_ssh() {
-
+    
+    yum -y install expect
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
     runuser -c "ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ''" - $adminUsername
     #touch /home/$adminUsername/.ssh/config
