@@ -81,8 +81,14 @@ do_LVM_partition() {
    vgcreate ${VGNAME} ${DISKS[@]}
    lvcreate --thin ${VGNAME}/${LVPOOLNAME} --extents 100%FREE --chunksize 256k --poolmetadatasize 16G --zero n
    lvpoolsize=$(lvdisplay | grep Current | rev | cut -d " " -f1 | rev)
-   let lvsize=($lvpoolsize * 388 / 100000)
-   lvcreate --thin --name ${BRICKLV} --virtualsize "${lvsize}G" ${VGNAME}/${LVPOOLNAME}
+   let lvsize=($lvpoolsize * 388 / 100000 / $DISKCOUNT)
+   index=1
+   for DISK in "${DISKS[@]}";
+    do 
+        lvcreate --thin --name ${BRICKLV}${index} --virtualsize "${lvsize}G" ${VGNAME}/${LVPOOLNAME} /dev/${DISK}
+        let index++
+    done;
+   
  
 
 }
@@ -116,20 +122,20 @@ configure_disks() {
             
     
     do_LVM_partition ${DISKS[@]}
-    PARTITION="/dev/${VGNAME}/${BRICKLV}"
-        
-    
-    echo "Creating filesystem on ${PARTITION}."
-    mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
 
+    index=1
+    while [ $index -le $DISKCOUNT ]; 
+    do 
+        PARTITION="/dev/${VGNAME}/${BRICKLV}${index}"
+        echo "Creating filesystem on ${PARTITION}."
+        mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
+        mkdir -p "${MOUNTPOINT}${index}"
+        echo -e "${PARTITION}\t${MOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
+        let index++
+    done;
     
-    mkdir -p "${MOUNTPOINT}"
+    echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
-    #add_to_fstab "${UUID}" "${MOUNTPOINT}"
-    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
-    
-    echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
-    #mount "${MOUNTPOINT}"
     mount -a && mount 
 }
 
@@ -259,6 +265,7 @@ allow_passwordssh() {
         /etc/init.d/sshd reload
     
 }
+
 
 # enable passwordless sudo
 sed --in-place 's/ALL=(ALL)\s\+ALL/ALL=(ALL)  NOPASSWD: ALL/' /etc/sudoers.d/waagent
