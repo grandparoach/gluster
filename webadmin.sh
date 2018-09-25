@@ -157,7 +157,7 @@ sed --in-place 's/ALL=(ALL)\s\+ALL/ALL=(ALL)  NOPASSWD: ALL/' /etc/sudoers.d/waa
 format_disks
 install_tendrl
 open_ports
-# configure_ssh
+configure_ssh
 edit_inventory_file
 
 
