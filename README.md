@@ -1,7 +1,7 @@
 # Gluster File System
 Automated deployment of gluster servers and clients
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrandparoach%2Fgluster%2Fwebadmin%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrandparoach%2Fgluster%2FEDA%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
@@ -14,6 +14,6 @@ The settings for these servers have been adopted from the guidance mentioned in 
 
 This link will deploy a cluster of client machines for testing the gluster servers performance.
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrandparoach%2Fgluster%2Fwebadmin%2Fgluster_client.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fgrandparoach%2Fgluster%2FEDA%2Fgluster_client.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
