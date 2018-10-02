@@ -46,7 +46,10 @@
         4,
         6,
         8,
-        10
+        10,
+        12,
+        14,
+        16
       ],
       "metadata": {
         "description": "Number of nodes in the gluster file system"
@@ -428,7 +431,7 @@
             },
             "copy": [{
                 "name": "dataDisks",
-                "count": "[parameters('nbDataDisks')]",
+                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), add(parameters('nbDataDisks'), 1), parameters('nbDataDisks')) ]",
                 "input": {
                     "lun": "[copyIndex('dataDisks')]",
                     "createOption": "Empty",
@@ -436,7 +439,8 @@
                     "diskSizeGB": "[parameters('datadiskSize')]"
                 }
             }]
-          
+
+
         },
         "networkProfile": {
           "networkInterfaces": [
