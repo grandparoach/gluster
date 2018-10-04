@@ -38,14 +38,14 @@ NODEINDEX=${3}
 NODECOUNT=${4}
 
 MOUNTPOINT="/datadrive"
-ARBITERMNTPNT="/arbiterdrive"
+ARBITERMOUNTPOINT="/arbiterdrive"
 
 VGNAME="glusterVG"
 LVPOOLNAME="thinpool"
 BRICKLV="brickLV"
 
 ARBITERVGNAME="arbiterVG"
-ARBITERLVPOOLNAME="arbiterthinpool"
+ARBITERPOOLNAME="arbiterthinpool"
 ARBITERBRICKLV="arbiterbrickLV"
 
 # Check to see if hostname is odd or even.  
@@ -94,12 +94,31 @@ do_gluster_LVM_partition() {
         blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
         disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
         let lvsize=($disksize * 96 / 100 )
-        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --zero n ${DISKS[${index}-1]}
+        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --zero n
 #        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
         let index++
     done;
 
 }
+
+do_arbiter_LVM_partition() {
+
+    pvcreate --dataalignment 256K ${DISKS[${GLUSTERDISKCOUNT}]}
+    vgcreate ${ARBITERVGNAME} ${DISKS[${GLUSTERDISKCOUNT}]}
+    lvcreate --thin ${ARBITERVGNAME}/${ARBITERPOOLNAME} --extents 100%FREE --chunksize 256k --zero n
+    blockname=$(echo ${DISKS[${GLUSTERDISKCOUNT}]} | cut -d/ -f3)
+    disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
+    let lvsize=($disksize * 96 / 100 / $GLUSTERDISKCOUNT )
+    index=1 
+    while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+        lvcreate --thin --name ${ARBITERBRICKLV}${index} --virtualsize "${lvsize}G" ${ARBITERVGNAME}/${ARBITERPOOLNAME}
+        let index++
+    done;
+
+}
+
+
+
 
 
 
@@ -126,10 +145,16 @@ configure_disks() {
     
     do_gluster_LVM_partition ${DISKS[@]}
 
+    if [$ARBITERHOST -eq 0]
+    then
+        do_arbiter_LVM_partition ${DISKS[@]}
+    fi
+    
+       
     index=1
-    while [ $index -le $DISKCOUNT ]; 
+    while [ $index -le $GLUSTERDISKCOUNT ]; 
     do 
-        PARTITION="/dev/${VGNAME}/${BRICKLV}${index}"
+        PARTITION="/dev/${VGNAME}${index}/${BRICKLV}${index}"
         echo "Creating filesystem on ${PARTITION}."
         mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
         mkdir -p "${MOUNTPOINT}${index}"
@@ -137,6 +162,21 @@ configure_disks() {
         let index++
     done;
     
+    if [$ARBITERHOST -eq 0]
+    then
+        index=1
+        while [ $index -le $GLUSTERDISKCOUNT ]; 
+        do 
+            PARTITION="/dev/${ARBITERVGNAME}/${ARBITERBRICKLV}${index}"
+            echo "Creating filesystem on ${PARTITION}."
+            mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
+            mkdir -p "${ARBITERMOUNTPOINT}${index}"
+            echo -e "${PARTITION}\t${ARBITERMOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
+            let index++
+    done;  
+       
+    fi
+
     echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
     mount -a && mount 
