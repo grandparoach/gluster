@@ -136,7 +136,7 @@ configure_disks() {
     DISKCOUNT=$(get_disk_count) 
     echo "Disk count is $DISKCOUNT"
             
-    if [${ARBITERHOST} -eq 0];
+    if [ ${ARBITERHOST} -eq 0 ];
     then
         let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
     else
@@ -145,7 +145,7 @@ configure_disks() {
     
     do_gluster_LVM_partition ${DISKS[@]}
 
-    if [${ARBITERHOST} -eq 0];
+    if [ ${ARBITERHOST} -eq 0 ];
     then
         do_arbiter_LVM_partition ${DISKS[@]}
     fi
@@ -162,7 +162,7 @@ configure_disks() {
         let index++
     done;
     
-    if [${ARBITERHOST} -eq 0];
+    if [ ${ARBITERHOST} -eq 0 ];
     then
         index=1
         while [ $index -le $GLUSTERDISKCOUNT ]; 
