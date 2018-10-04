@@ -38,10 +38,20 @@ NODEINDEX=${3}
 NODECOUNT=${4}
 
 MOUNTPOINT="/datadrive"
+ARBITERMNTPNT="/arbiterdrive"
 
 VGNAME="glusterVG"
 LVPOOLNAME="thinpool"
 BRICKLV="brickLV"
+
+ARBITERVGNAME="arbiterVG"
+ARBITERLVPOOLNAME="arbiterthinpool"
+ARBITERBRICKLV="arbiterbrickLV"
+
+# Check to see if hostname is odd or even.  
+# Even numbered hosts have an extra disk for the arbiter
+
+let ARBITERHOST=( `hostname | sed -s "s/$PEERNODEPREFIX//"` % 2)
 
 
 # An set of disks to ignore from partitioning and formatting
@@ -75,32 +85,24 @@ get_disk_count() {
 
 
 
-do_LVM_partition() {
-    
-   pvcreate --dataalignment 256K ${DISKS[@]}
-   vgcreate ${VGNAME} ${DISKS[@]}
-   lvcreate --thin ${VGNAME}/${LVPOOLNAME} --extents 100%FREE --chunksize 256k --poolmetadatasize 16G --zero n
-   lvpoolsize=$(lvdisplay | grep Current | rev | cut -d " " -f1 | rev)
-   let lvsize=($lvpoolsize * 388 / 100000)
-   lvcreate --thin --name ${BRICKLV} --virtualsize "${lvsize}G" ${VGNAME}/${LVPOOLNAME}
- 
+do_gluster_LVM_partition() {
+
+   index=1 
+   while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+        pvcreate --dataalignment 256K ${DISKS[${index}-1]}
+        vgcreate ${VGNAME}${index} ${DISKS[${index}-1]}
+        blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
+        disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
+        let lvsize=($disksize * 96 / 100 )
+        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
+        let index++
+    done;
 
 }
 
 
 
-add_to_fstab() {
-    UUID=${1}
-    MOUNTPOINT=${2}
-    grep "${UUID}" /etc/fstab >/dev/null 2>&1
-    if [ ${?} -eq 0 ];
-    then
-        echo "Not adding ${UUID} to fstab again (it's already there!)"
-    else
-        LINE="UUID=${UUID} ${MOUNTPOINT} ext4 defaults,noatime 0 0"
-        echo -e "${LINE}" >> /etc/fstab
-    fi
-}
+
 
 configure_disks() {
     ls "${MOUNTPOINT}"
@@ -114,22 +116,28 @@ configure_disks() {
     DISKCOUNT=$(get_disk_count) 
     echo "Disk count is $DISKCOUNT"
             
+    if [$ARBITERHOST -eq 0]
+    then
+        let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
+    else
+        let GLUSTERDISKCOUNT=$DISKCOUNT
+    fi
     
-    do_LVM_partition ${DISKS[@]}
-    PARTITION="/dev/${VGNAME}/${BRICKLV}"
-        
-    
-    echo "Creating filesystem on ${PARTITION}."
-    mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}  
+    do_gluster_LVM_partition ${DISKS[@]}
 
+    index=1
+    while [ $index -le $DISKCOUNT ]; 
+    do 
+        PARTITION="/dev/${VGNAME}/${BRICKLV}${index}"
+        echo "Creating filesystem on ${PARTITION}."
+        mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
+        mkdir -p "${MOUNTPOINT}${index}"
+        echo -e "${PARTITION}\t${MOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
+        let index++
+    done;
     
-    mkdir -p "${MOUNTPOINT}"
+    echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
-    #add_to_fstab "${UUID}" "${MOUNTPOINT}"
-    echo -e "${PARTITION}\t${MOUNTPOINT}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
-    
-    echo "Mounting disk ${PARTITION} on ${MOUNTPOINT}"
-    #mount "${MOUNTPOINT}"
     mount -a && mount 
 }
 
