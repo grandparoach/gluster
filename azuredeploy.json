@@ -198,14 +198,14 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/gluster/EDA/azuregfs.sh" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/webadmin.sh",  
-        "https://raw.githubusercontent.com/grandparoach/gluster/webadmin/ssh_copy_id.exp" 
+        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/webadmin.sh",  
+        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/ssh_copy_id.exp" 
       ],
       "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
