@@ -94,7 +94,8 @@ do_gluster_LVM_partition() {
         blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
         disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
         let lvsize=($disksize * 96 / 100 )
-        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
+        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --zero n ${DISKS[${index}-1]}
+#        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
         let index++
     done;
 
