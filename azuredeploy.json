@@ -431,7 +431,7 @@
             },
             "copy": [{
                 "name": "dataDisks",
-                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), add(parameters('nbDataDisks'), 1), parameters('nbDataDisks')) ]",
+                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), parameters('nbDataDisks'), add(parameters('nbDataDisks'), 1)) ]",
                 "input": {
                     "lun": "[copyIndex('dataDisks')]",
                     "createOption": "Empty",
