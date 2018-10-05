@@ -118,12 +118,6 @@ do_arbiter_LVM_partition() {
 }
 
 
-
-
-
-
-
-
 configure_disks() {
     ls "${MOUNTPOINT}"
     if [ ${?} -eq 0 ]
@@ -218,13 +212,22 @@ configure_gluster() {
     #gluster system:: uuid reset << EOF
 #y
 #EOF
-
-
-    GLUSTERDIR="${MOUNTPOINT}/brick"
-    ls "${GLUSTERDIR}"
-    if [ ${?} -ne 0 ];
-    then
+    
+    index=1 
+    while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+        GLUSTERDIR="${MOUNTPOINT}${index}/brick${index}"
         mkdir "${GLUSTERDIR}"
+        let index++
+    done;
+
+    if [ ${ARBITERHOST} -eq 0 ];
+    then   
+        index=1 
+        while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+            ARBITERDIR="${ARBITERMOUNTPOINT}${index}/arbiter${index}"
+            mkdir "${ARBITERDIR}"
+            let index++
+        done;
     fi
 
     if [ $NODEINDEX -lt $(($NODECOUNT)) ];
@@ -265,9 +268,133 @@ configure_gluster() {
         let retry--
     done
 
-    gluster volume create ${VOLUMENAME} replica 2 transport tcp ${allNodes} 2>> /tmp/error << EOF
-y
-EOF
+gluster volume create ${VOLUMENAME} replica 3 arbiter 1 transport tcp \
+${PEERNODEPREFIX}1:/datadrive1/brick1 ${PEERNODEPREFIX}2:/datadrive1/brick1 ${PEERNODEPREFIX}4:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}3:/datadrive1/brick1 ${PEERNODEPREFIX}4:/datadrive1/brick1 ${PEERNODEPREFIX}2:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}1:/datadrive2/brick2 ${PEERNODEPREFIX}2:/datadrive2/brick2 ${PEERNODEPREFIX}4:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}3:/datadrive2/brick2 ${PEERNODEPREFIX}4:/datadrive2/brick2 ${PEERNODEPREFIX}2:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}1:/datadrive3/brick3 ${PEERNODEPREFIX}2:/datadrive3/brick3 ${PEERNODEPREFIX}4:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}3:/datadrive3/brick3 ${PEERNODEPREFIX}4:/datadrive3/brick3 ${PEERNODEPREFIX}2:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}1:/datadrive4/brick4 ${PEERNODEPREFIX}2:/datadrive4/brick4 ${PEERNODEPREFIX}4:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}3:/datadrive4/brick4 ${PEERNODEPREFIX}4:/datadrive4/brick4 ${PEERNODEPREFIX}2:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}1:/datadrive5/brick5 ${PEERNODEPREFIX}2:/datadrive5/brick5 ${PEERNODEPREFIX}4:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}3:/datadrive5/brick5 ${PEERNODEPREFIX}4:/datadrive5/brick5 ${PEERNODEPREFIX}2:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}1:/datadrive6/brick6 ${PEERNODEPREFIX}6:/datadrive6/brick6 ${PEERNODEPREFIX}4:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}3:/datadrive6/brick6 ${PEERNODEPREFIX}6:/datadrive6/brick6 ${PEERNODEPREFIX}2:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}1:/datadrive7/brick7 ${PEERNODEPREFIX}2:/datadrive7/brick7 ${PEERNODEPREFIX}4:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}3:/datadrive7/brick7 ${PEERNODEPREFIX}4:/datadrive7/brick7 ${PEERNODEPREFIX}2:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}1:/datadrive8/brick8 ${PEERNODEPREFIX}2:/datadrive8/brick8 ${PEERNODEPREFIX}4:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}3:/datadrive8/brick8 ${PEERNODEPREFIX}4:/datadrive8/brick8 ${PEERNODEPREFIX}2:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}1:/datadrive9/brick9 ${PEERNODEPREFIX}2:/datadrive9/brick9 ${PEERNODEPREFIX}4:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}3:/datadrive9/brick9 ${PEERNODEPREFIX}4:/datadrive9/brick9 ${PEERNODEPREFIX}2:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}1:/datadrive10/brick10 ${PEERNODEPREFIX}2:/datadrive10/brick10 ${PEERNODEPREFIX}4:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}3:/datadrive10/brick10 ${PEERNODEPREFIX}4:/datadrive10/brick10 ${PEERNODEPREFIX}2:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}1:/datadrive11/brick11 ${PEERNODEPREFIX}2:/datadrive11/brick11 ${PEERNODEPREFIX}4:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}3:/datadrive11/brick11 ${PEERNODEPREFIX}4:/datadrive11/brick11 ${PEERNODEPREFIX}2:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}1:/datadrive12/brick12 ${PEERNODEPREFIX}2:/datadrive12/brick12 ${PEERNODEPREFIX}4:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}3:/datadrive12/brick12 ${PEERNODEPREFIX}4:/datadrive12/brick12 ${PEERNODEPREFIX}2:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}1:/datadrive13/brick13 ${PEERNODEPREFIX}2:/datadrive13/brick13 ${PEERNODEPREFIX}4:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}3:/datadrive13/brick13 ${PEERNODEPREFIX}4:/datadrive13/brick13 ${PEERNODEPREFIX}2:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}1:/datadrive14/brick14 ${PEERNODEPREFIX}2:/datadrive14/brick14 ${PEERNODEPREFIX}4:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}3:/datadrive14/brick14 ${PEERNODEPREFIX}4:/datadrive14/brick14 ${PEERNODEPREFIX}2:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}1:/datadrive15/brick15 ${PEERNODEPREFIX}2:/datadrive15/brick15 ${PEERNODEPREFIX}4:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}3:/datadrive15/brick15 ${PEERNODEPREFIX}4:/datadrive15/brick15 ${PEERNODEPREFIX}2:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}5:/datadrive1/brick1 ${PEERNODEPREFIX}6:/datadrive1/brick1 ${PEERNODEPREFIX}8:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}7:/datadrive1/brick1 ${PEERNODEPREFIX}8:/datadrive1/brick1 ${PEERNODEPREFIX}6:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}5:/datadrive2/brick2 ${PEERNODEPREFIX}6:/datadrive2/brick2 ${PEERNODEPREFIX}8:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}7:/datadrive2/brick2 ${PEERNODEPREFIX}8:/datadrive2/brick2 ${PEERNODEPREFIX}6:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}5:/datadrive3/brick3 ${PEERNODEPREFIX}6:/datadrive3/brick3 ${PEERNODEPREFIX}8:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}7:/datadrive3/brick3 ${PEERNODEPREFIX}8:/datadrive3/brick3 ${PEERNODEPREFIX}6:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}5:/datadrive4/brick4 ${PEERNODEPREFIX}6:/datadrive4/brick4 ${PEERNODEPREFIX}8:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}7:/datadrive4/brick4 ${PEERNODEPREFIX}8:/datadrive4/brick4 ${PEERNODEPREFIX}6:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}5:/datadrive5/brick5 ${PEERNODEPREFIX}6:/datadrive5/brick5 ${PEERNODEPREFIX}8:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}7:/datadrive5/brick5 ${PEERNODEPREFIX}8:/datadrive5/brick5 ${PEERNODEPREFIX}6:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}5:/datadrive6/brick6 ${PEERNODEPREFIX}6:/datadrive6/brick6 ${PEERNODEPREFIX}8:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}7:/datadrive6/brick6 ${PEERNODEPREFIX}8:/datadrive6/brick6 ${PEERNODEPREFIX}6:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}5:/datadrive7/brick7 ${PEERNODEPREFIX}6:/datadrive7/brick7 ${PEERNODEPREFIX}8:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}7:/datadrive7/brick7 ${PEERNODEPREFIX}8:/datadrive7/brick7 ${PEERNODEPREFIX}6:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}5:/datadrive8/brick8 ${PEERNODEPREFIX}6:/datadrive8/brick8 ${PEERNODEPREFIX}8:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}7:/datadrive8/brick8 ${PEERNODEPREFIX}8:/datadrive8/brick8 ${PEERNODEPREFIX}6:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}5:/datadrive9/brick9 ${PEERNODEPREFIX}6:/datadrive9/brick9 ${PEERNODEPREFIX}8:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}7:/datadrive9/brick9 ${PEERNODEPREFIX}8:/datadrive9/brick9 ${PEERNODEPREFIX}6:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}5:/datadrive10/brick10 ${PEERNODEPREFIX}6:/datadrive10/brick10 ${PEERNODEPREFIX}8:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}7:/datadrive10/brick10 ${PEERNODEPREFIX}8:/datadrive10/brick10 ${PEERNODEPREFIX}6:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}5:/datadrive11/brick11 ${PEERNODEPREFIX}6:/datadrive11/brick11 ${PEERNODEPREFIX}8:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}7:/datadrive11/brick11 ${PEERNODEPREFIX}8:/datadrive11/brick11 ${PEERNODEPREFIX}6:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}5:/datadrive12/brick12 ${PEERNODEPREFIX}6:/datadrive12/brick12 ${PEERNODEPREFIX}8:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}7:/datadrive12/brick12 ${PEERNODEPREFIX}8:/datadrive12/brick12 ${PEERNODEPREFIX}6:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}5:/datadrive13/brick13 ${PEERNODEPREFIX}6:/datadrive13/brick13 ${PEERNODEPREFIX}8:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}7:/datadrive13/brick13 ${PEERNODEPREFIX}8:/datadrive13/brick13 ${PEERNODEPREFIX}6:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}5:/datadrive14/brick14 ${PEERNODEPREFIX}6:/datadrive14/brick14 ${PEERNODEPREFIX}8:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}7:/datadrive14/brick14 ${PEERNODEPREFIX}8:/datadrive14/brick14 ${PEERNODEPREFIX}6:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}5:/datadrive15/brick15 ${PEERNODEPREFIX}6:/datadrive15/brick15 ${PEERNODEPREFIX}8:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}7:/datadrive15/brick15 ${PEERNODEPREFIX}8:/datadrive15/brick15 ${PEERNODEPREFIX}6:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}9:/datadrive1/brick1 ${PEERNODEPREFIX}10:/datadrive1/brick1 ${PEERNODEPREFIX}12:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}11:/datadrive1/brick1 ${PEERNODEPREFIX}12:/datadrive1/brick1 ${PEERNODEPREFIX}10:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}9:/datadrive2/brick2 ${PEERNODEPREFIX}10:/datadrive2/brick2 ${PEERNODEPREFIX}12:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}11:/datadrive2/brick2 ${PEERNODEPREFIX}12:/datadrive2/brick2 ${PEERNODEPREFIX}10:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}9:/datadrive3/brick3 ${PEERNODEPREFIX}10:/datadrive3/brick3 ${PEERNODEPREFIX}12:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}11:/datadrive3/brick3 ${PEERNODEPREFIX}12:/datadrive3/brick3 ${PEERNODEPREFIX}10:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}9:/datadrive4/brick4 ${PEERNODEPREFIX}10:/datadrive4/brick4 ${PEERNODEPREFIX}12:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}11:/datadrive4/brick4 ${PEERNODEPREFIX}12:/datadrive4/brick4 ${PEERNODEPREFIX}10:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}9:/datadrive5/brick5 ${PEERNODEPREFIX}10:/datadrive5/brick5 ${PEERNODEPREFIX}12:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}11:/datadrive5/brick5 ${PEERNODEPREFIX}12:/datadrive5/brick5 ${PEERNODEPREFIX}10:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}9:/datadrive6/brick6 ${PEERNODEPREFIX}10:/datadrive6/brick6 ${PEERNODEPREFIX}12:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}11:/datadrive6/brick6 ${PEERNODEPREFIX}12:/datadrive6/brick6 ${PEERNODEPREFIX}10:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}9:/datadrive7/brick7 ${PEERNODEPREFIX}10:/datadrive7/brick7 ${PEERNODEPREFIX}12:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}11:/datadrive7/brick7 ${PEERNODEPREFIX}12:/datadrive7/brick7 ${PEERNODEPREFIX}10:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}9:/datadrive8/brick8 ${PEERNODEPREFIX}10:/datadrive8/brick8 ${PEERNODEPREFIX}12:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}11:/datadrive8/brick8 ${PEERNODEPREFIX}12:/datadrive8/brick8 ${PEERNODEPREFIX}10:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}9:/datadrive9/brick9 ${PEERNODEPREFIX}10:/datadrive9/brick9 ${PEERNODEPREFIX}12:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}11:/datadrive9/brick9 ${PEERNODEPREFIX}12:/datadrive9/brick9 ${PEERNODEPREFIX}10:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}9:/datadrive10/brick10 ${PEERNODEPREFIX}10:/datadrive10/brick10 ${PEERNODEPREFIX}12:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}11:/datadrive10/brick10 ${PEERNODEPREFIX}12:/datadrive10/brick10 ${PEERNODEPREFIX}10:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}9:/datadrive11/brick11 ${PEERNODEPREFIX}10:/datadrive11/brick11 ${PEERNODEPREFIX}12:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}11:/datadrive11/brick11 ${PEERNODEPREFIX}12:/datadrive11/brick11 ${PEERNODEPREFIX}10:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}9:/datadrive12/brick12 ${PEERNODEPREFIX}10:/datadrive12/brick12 ${PEERNODEPREFIX}12:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}11:/datadrive12/brick12 ${PEERNODEPREFIX}12:/datadrive12/brick12 ${PEERNODEPREFIX}10:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}9:/datadrive13/brick13 ${PEERNODEPREFIX}10:/datadrive13/brick13 ${PEERNODEPREFIX}12:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}11:/datadrive13/brick13 ${PEERNODEPREFIX}12:/datadrive13/brick13 ${PEERNODEPREFIX}10:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}9:/datadrive14/brick14 ${PEERNODEPREFIX}10:/datadrive14/brick14 ${PEERNODEPREFIX}12:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}11:/datadrive14/brick14 ${PEERNODEPREFIX}12:/datadrive14/brick14 ${PEERNODEPREFIX}10:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}9:/datadrive15/brick15 ${PEERNODEPREFIX}10:/datadrive15/brick15 ${PEERNODEPREFIX}12:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}11:/datadrive15/brick15 ${PEERNODEPREFIX}12:/datadrive15/brick15 ${PEERNODEPREFIX}10:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}13:/datadrive1/brick1 ${PEERNODEPREFIX}14:/datadrive1/brick1 ${PEERNODEPREFIX}16:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}15:/datadrive1/brick1 ${PEERNODEPREFIX}16:/datadrive1/brick1 ${PEERNODEPREFIX}14:/arbiterdrive1/arbiter1 \
+${PEERNODEPREFIX}13:/datadrive2/brick2 ${PEERNODEPREFIX}14:/datadrive2/brick2 ${PEERNODEPREFIX}16:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}15:/datadrive2/brick2 ${PEERNODEPREFIX}16:/datadrive2/brick2 ${PEERNODEPREFIX}14:/arbiterdrive2/arbiter2 \
+${PEERNODEPREFIX}13:/datadrive3/brick3 ${PEERNODEPREFIX}14:/datadrive3/brick3 ${PEERNODEPREFIX}16:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}15:/datadrive3/brick3 ${PEERNODEPREFIX}16:/datadrive3/brick3 ${PEERNODEPREFIX}14:/arbiterdrive3/arbiter3 \
+${PEERNODEPREFIX}13:/datadrive4/brick4 ${PEERNODEPREFIX}14:/datadrive4/brick4 ${PEERNODEPREFIX}16:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}15:/datadrive4/brick4 ${PEERNODEPREFIX}16:/datadrive4/brick4 ${PEERNODEPREFIX}14:/arbiterdrive4/arbiter4 \
+${PEERNODEPREFIX}13:/datadrive5/brick5 ${PEERNODEPREFIX}14:/datadrive5/brick5 ${PEERNODEPREFIX}16:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}15:/datadrive5/brick5 ${PEERNODEPREFIX}16:/datadrive5/brick5 ${PEERNODEPREFIX}14:/arbiterdrive5/arbiter5 \
+${PEERNODEPREFIX}13:/datadrive6/brick6 ${PEERNODEPREFIX}14:/datadrive6/brick6 ${PEERNODEPREFIX}16:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}15:/datadrive6/brick6 ${PEERNODEPREFIX}16:/datadrive6/brick6 ${PEERNODEPREFIX}14:/arbiterdrive6/arbiter6 \
+${PEERNODEPREFIX}13:/datadrive7/brick7 ${PEERNODEPREFIX}14:/datadrive7/brick7 ${PEERNODEPREFIX}16:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}15:/datadrive7/brick7 ${PEERNODEPREFIX}16:/datadrive7/brick7 ${PEERNODEPREFIX}14:/arbiterdrive7/arbiter7 \
+${PEERNODEPREFIX}13:/datadrive8/brick8 ${PEERNODEPREFIX}14:/datadrive8/brick8 ${PEERNODEPREFIX}16:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}15:/datadrive8/brick8 ${PEERNODEPREFIX}16:/datadrive8/brick8 ${PEERNODEPREFIX}14:/arbiterdrive8/arbiter8 \
+${PEERNODEPREFIX}13:/datadrive9/brick9 ${PEERNODEPREFIX}14:/datadrive9/brick9 ${PEERNODEPREFIX}16:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}15:/datadrive9/brick9 ${PEERNODEPREFIX}16:/datadrive9/brick9 ${PEERNODEPREFIX}14:/arbiterdrive9/arbiter9 \
+${PEERNODEPREFIX}13:/datadrive10/brick10 ${PEERNODEPREFIX}14:/datadrive10/brick10 ${PEERNODEPREFIX}16:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}15:/datadrive10/brick10 ${PEERNODEPREFIX}16:/datadrive10/brick10 ${PEERNODEPREFIX}14:/arbiterdrive10/arbiter10 \
+${PEERNODEPREFIX}13:/datadrive11/brick11 ${PEERNODEPREFIX}14:/datadrive11/brick11 ${PEERNODEPREFIX}16:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}15:/datadrive11/brick11 ${PEERNODEPREFIX}16:/datadrive11/brick11 ${PEERNODEPREFIX}14:/arbiterdrive11/arbiter11 \
+${PEERNODEPREFIX}13:/datadrive12/brick12 ${PEERNODEPREFIX}14:/datadrive12/brick12 ${PEERNODEPREFIX}16:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}15:/datadrive12/brick12 ${PEERNODEPREFIX}16:/datadrive12/brick12 ${PEERNODEPREFIX}14:/arbiterdrive12/arbiter12 \
+${PEERNODEPREFIX}13:/datadrive13/brick13 ${PEERNODEPREFIX}14:/datadrive13/brick13 ${PEERNODEPREFIX}16:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}15:/datadrive13/brick13 ${PEERNODEPREFIX}16:/datadrive13/brick13 ${PEERNODEPREFIX}14:/arbiterdrive13/arbiter13 \
+${PEERNODEPREFIX}13:/datadrive14/brick14 ${PEERNODEPREFIX}14:/datadrive14/brick14 ${PEERNODEPREFIX}16:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}15:/datadrive14/brick14 ${PEERNODEPREFIX}16:/datadrive14/brick14 ${PEERNODEPREFIX}14:/arbiterdrive14/arbiter14 \
+${PEERNODEPREFIX}13:/datadrive15/brick15 ${PEERNODEPREFIX}14:/datadrive15/brick15 ${PEERNODEPREFIX}16:/arbiterdrive15/arbiter15 \
+${PEERNODEPREFIX}15:/datadrive15/brick15 ${PEERNODEPREFIX}16:/datadrive15/brick15 ${PEERNODEPREFIX}14:/arbiterdrive15/arbiter15 \
+
+
+
+    #gluster volume create ${VOLUMENAME} replica 2 transport tcp ${allNodes} 2>> /tmp/error << EOF
+#y
+#EOF
     
     gluster volume info 2>> /tmp/error
     gluster volume start ${VOLUMENAME} 2>> /tmp/error
