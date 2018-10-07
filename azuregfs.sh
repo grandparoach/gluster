@@ -92,8 +92,15 @@ do_gluster_LVM_partition() {
         pvcreate --dataalignment 256K ${DISKS[${index}-1]}
         vgcreate ${VGNAME}${index} ${DISKS[${index}-1]}
         blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
-        disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
-        let lvsize=($disksize * 96 / 100 )
+        disksize=$(lsblk | grep $blockname | awk '{print $4}')
+        if [ ${disksize: -1} == "T" ]; 
+            then 
+                disksizeTB=$(echo $disksize | cut -dT -f1)
+                let disksizeGB=($disksizeTB * 1024)
+            else
+                disksizeGB=$(echo $disksize | cut -dG -f1)
+        fi
+        let lvsize=($disksizeGB * 96 / 100 )
         lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --zero n
 #        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
         let index++
@@ -107,8 +114,16 @@ do_arbiter_LVM_partition() {
     vgcreate ${ARBITERVGNAME} ${DISKS[${GLUSTERDISKCOUNT}]}
     lvcreate --thin ${ARBITERVGNAME}/${ARBITERPOOLNAME} --extents 100%FREE --chunksize 256k --zero n
     blockname=$(echo ${DISKS[${GLUSTERDISKCOUNT}]} | cut -d/ -f3)
-    disksize=$(lsblk | grep $blockname | awk '{print $4}' | cut -dG -f1)
-    let lvsize=($disksize * 96 / 100 / $GLUSTERDISKCOUNT )
+    disksize=$(lsblk | grep $blockname | awk '{print $4}')
+        if [ ${disksize: -1} == "T" ]; 
+            then 
+                disksizeTB=$(echo $disksize | cut -dT -f1)
+                let disksizeGB=($disksizeTB * 1024)
+            else
+                disksizeGB=$(echo $disksize | cut -dG -f1)
+        fi
+        
+    let lvsize=($disksizeGB * 96 / 100 / $GLUSTERDISKCOUNT )
     index=1 
     while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
         lvcreate --thin --name ${ARBITERBRICKLV}${index} --virtualsize "${lvsize}G" ${ARBITERVGNAME}/${ARBITERPOOLNAME}
