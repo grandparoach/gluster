@@ -99,32 +99,11 @@ configure_ssh() {
     yum -y install sshpass
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
     su -c "ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ''" - $adminUsername
-    #touch /home/$adminUsername/.ssh/config
-    #echo 'Host *' >> /home/$adminUsername/.ssh/config
-    #echo 'StrictHostKeyChecking no' >> /home/$adminUsername/.ssh/config
-    #chmod 400 /home/$adminUsername/.ssh/config
-    #chown $adminUsername:$adminUsername /home/$adminUsername/.ssh/config
-    #cp ssh_copy_id.exp /home/$adminUsername 
-    #chown $adminUsername:$adminUsername /home/$adminUsername/ssh_copy_id.exp 
-    #chmod 777 /home/$adminUsername/ssh_copy_id.exp
-    #runuser -u $adminUsername /home/$adminUsername/ssh_copy_id.exp $adminUsername `hostname`.$DNSsuffix $adminPassword
-
 
 index=1    
     while [ $index -le $(($NODECOUNT)) ]; do
-            
-        #runuser -u $adminUsername /home/$adminUsername/ssh_copy_id.exp $adminUsername $PEERNODEPREFIX$index.$DNSsuffix $adminPassword
-        su -c 'sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o "StrictHostKeyChecking no" -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix -p 22' – $adminUsername 
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'mkdir /home/'$adminUsername'/.ssh && chmod 700 /home/'$adminUsername'/.ssh'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'touch /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "Host *" >  /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'echo "StrictHostKeyChecking no" >> /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 400 /home/'$adminUsername'/.ssh/config'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chown '$adminUsername:$adminUsername' /home/'$adminUsername'/.ssh/config'
-        #cat /home/$adminUsername/.ssh/id_rsa.pub | sshpass -p $adminPassword ssh -o ConnectTimeout=2  $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'cat >> /home/'$adminUsername'/.ssh/authorized_keys'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 700 /home/'$adminUsername'/.ssh/'
-        #sshpass -p $adminPassword ssh -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix 'chmod 640 /home/'$adminUsername'/.ssh/authorized_keys'
-        
+        SSHCOMMAND="su -c 'sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix -p 22' - $adminUsername"
+        eval $SSHCOMMAND 
         let index++
     done
 }
@@ -169,4 +148,3 @@ chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
 # run the playbook
 cd /home/$adminUsername
 su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
-
