@@ -146,5 +146,5 @@ cp /usr/share/doc/tendrl-ansible-1.6.3/site.yml /home/$adminUsername
 chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
 
 # run the playbook
-cd /home/$adminUsername
-su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
+# cd /home/$adminUsername
+# su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
