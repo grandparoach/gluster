@@ -339,7 +339,7 @@ ${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}8.${DNSsuffi
     gluster volume set ${VOLUMENAME} server.event-threads 4
     gluster volume set ${VOLUMENAME} client.event-threads 4
     gluster volume set ${VOLUMENAME} cluster.lookup-optimize on
-    gluster volume set ${VOLUMENAME} group metadata-cache
+    #gluster volume set ${VOLUMENAME} group metadata-cache
         # Below performance options are _bad_ for database workloads
     gluster volume set ${VOLUMENAME} performance.open-behind on
     gluster volume set ${VOLUMENAME} performance.write-behind on
