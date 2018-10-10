@@ -39,7 +39,11 @@ subscription-manager attach --pool=8a85f9875f7334a1015f74b57adf779e
 subscription-manager repos --disable="*" 
 subscription-manager repos --enable=rhel-7-server-rpms
 subscription-manager repos --enable=rh-gluster-3-web-admin-server-for-rhel-7-server-rpms
-subscription-manager repos --enable=rhel-7-server-ansible-2-rpms
+# subscription-manager repos --enable=rhel-7-server-ansible-2-rpms
+subscription-manager repos --disable=rhel-7-server-ansible-2-rpms
+subscription-manager repos --enable=rhel-7-server-ansible-2.6-rpms
+# yum downgrade ansible-2.6.5-1.el7ae
+
 
 yum -y install ansible tendrl-ansible
 
@@ -146,5 +150,5 @@ cp /usr/share/doc/tendrl-ansible-1.6.3/site.yml /home/$adminUsername
 chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
 
 # run the playbook
-# cd /home/$adminUsername
-# su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
+#cd /home/$adminUsername
+#su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
