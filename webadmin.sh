@@ -103,8 +103,9 @@ configure_ssh() {
     yum -y install sshpass
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
     su -c "ssh-keygen -t rsa -f /home/$adminUsername/.ssh/id_rsa -q -P ''" - $adminUsername
-
-index=1    
+    SSHCOMMAND="su -c 'sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUsername@`hostname`.$DNSsuffix -p 22' - $adminUsername"
+    eval $SSHCOMMAND
+    index=1    
     while [ $index -le $(($NODECOUNT)) ]; do
         SSHCOMMAND="su -c 'sshpass -p $adminPassword ssh-copy-id -i /home/$adminUsername/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUsername@$PEERNODEPREFIX$index.$DNSsuffix -p 22' - $adminUsername"
         eval $SSHCOMMAND 
@@ -150,5 +151,6 @@ cp /usr/share/doc/tendrl-ansible-1.6.3/site.yml /home/$adminUsername
 chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
 
 # run the playbook
-#cd /home/$adminUsername
-#su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
+cd /home/$adminUsername
+su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
+
