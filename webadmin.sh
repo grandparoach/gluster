@@ -11,6 +11,7 @@ PEERNODEPREFIX=${3}
 NODECOUNT=${4}
 USERNAME_ORG=${5}
 PASSWORD_ACT_KEY="${6}"
+GLUSTERVOLUME=${7}
 
 # Remove RHUI
 
@@ -135,6 +136,50 @@ edit_inventory_file() {
 
 }
 
+
+run_ansible_playbook() {
+    # copy site.yml
+    cp /usr/share/doc/tendrl-ansible-1.6.3/site.yml /home/$adminUsername
+    chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
+
+    # run the playbook
+    cd /home/$adminUsername
+    su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
+
+}
+
+install_client() {
+
+    subscription-manager repos --enable=rh-gluster-3-client-for-rhel-7-server-rpms
+    yum install glusterfs glusterfs-fuse
+
+MOUNTPOINT=/mnt/${GLUSTERVOLUME}
+mkdir -p ${MOUNTPOINT}
+
+#Build list of servers
+GFSSERVER=$((1 + RANDOM % 7 ))
+backupNodes="${PEERNODEPREFIX}${NODECOUNT}"
+index=1
+while [ $index -lt ${NODECOUNT} ] ; do
+    if [ ${index} -ne ${GFSSERVER} ];
+        then
+        backupNodes="${backupNodes}:${PEERNODEPREFIX}${index}"
+    fi
+    let index++
+done
+
+# Mount the file system and add the /etc/fstab setting
+
+mount -t glusterfs -o backup-volfile-servers=${backupNodes} ${PEERNODEPREFIX}${GFSSERVER}:/${GLUSTERVOLUME} ${MOUNTPOINT}
+
+LINE="${PEERNODEPREFIX}${GFSSERVER}:/${GLUSTERVOLUME} ${MOUNTPOINT} glusterfs defaults,backup-volfile-servers=${backupNodes} 0 0"    
+echo -e "${LINE}" >> /etc/fstab
+
+
+chmod -R 777 $MOUNTPOINT
+
+}
+
 # enable passwordless sudo
 sed --in-place 's/ALL=(ALL)\s\+ALL/ALL=(ALL)  NOPASSWD: ALL/' /etc/sudoers.d/waagent
 
@@ -144,13 +189,5 @@ install_tendrl
 open_ports
 configure_ssh
 edit_inventory_file
-
-
-# copy site.yml
-cp /usr/share/doc/tendrl-ansible-1.6.3/site.yml /home/$adminUsername
-chown $adminUsername:$adminUsername /home/$adminUsername/site.yml
-
-# run the playbook
-cd /home/$adminUsername
-su -c 'ansible-playbook -b -i inventory site.yml' - $adminUsername
-
+run_ansible_playbook
+install_client 
