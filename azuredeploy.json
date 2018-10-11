@@ -389,7 +389,7 @@
           "fileUris": "[variables('GlusterWebAdminScripts').scriptsToDownload]"
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('bash webadmin.sh ', parameters('adminUsername'), ' ', parameters('adminPassword'), ' ',parameters('vmNamePrefix'), ' ',  parameters('scaleNumber'), ' ', parameters('RedhatSubscriptionID'), ' ', parameters('RedhatSubscriptionPassword'))]" 
+          "commandToExecute": "[concat('bash webadmin.sh ', parameters('adminUsername'), ' ', parameters('adminPassword'), ' ',parameters('vmNamePrefix'), ' ',  parameters('scaleNumber'), ' ', parameters('RedhatSubscriptionID'), ' ', parameters('RedhatSubscriptionPassword'), ' ', parameters('volumeName'))]" 
         }
       }
     },
