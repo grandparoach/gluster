@@ -151,7 +151,7 @@ run_ansible_playbook() {
 install_client() {
 
     subscription-manager repos --enable=rh-gluster-3-client-for-rhel-7-server-rpms
-    yum install glusterfs glusterfs-fuse
+    yum -y install glusterfs glusterfs-fuse
 
 MOUNTPOINT=/mnt/${GLUSTERVOLUME}
 mkdir -p ${MOUNTPOINT}
