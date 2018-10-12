@@ -293,14 +293,6 @@ ${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}2.${DNSsuffi
 ${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive3/arbiter3 \
 ${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive4/arbiter4 \
 ${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive8/arbiter8 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive8/arbiter8 \
 ${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive1/arbiter1 \
 ${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive1/arbiter1 \
 ${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive2/arbiter2 \
@@ -309,14 +301,6 @@ ${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}6.${DNSsuffi
 ${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive3/arbiter3 \
 ${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive4/arbiter4 \
 ${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive8/arbiter8 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive8/arbiter8 \ 
 ${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive1/arbiter1 \
 ${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive1/arbiter1 \
 ${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive2/arbiter2 \
@@ -324,15 +308,7 @@ ${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}12.${DNSsuf
 ${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive3/arbiter3 \
 ${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive3/arbiter3 \
 ${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive5/brick5 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive5/arbiter5 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive6/brick6 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive6/arbiter6 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive7/brick7 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive7/arbiter7 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive8/arbiter8 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive8/brick8 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive8/arbiter8 
+${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive4/arbiter4 
 
 
 
