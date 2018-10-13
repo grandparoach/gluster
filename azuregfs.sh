@@ -283,10 +283,10 @@ configure_gluster() {
     
     let HOST=4
     MKVOLCOMMAND=$(echo 'gluster volume create ${VOLUMENAME} replica 3 arbiter 1 transport tcp '
-        while [ $(($HOST)) -le $(($NUMHOSTS)) ]; 
+    while [ $(($HOST)) -le $(($NODECOUNT)) ]; 
         do
             let DISK=1
-            while [ $(($DISK)) -le $(($NUMDISKS)) ];
+            while [ $(($DISK)) -le $(($GLUSTERDISKCOUNT)) ];
                 do 
                 echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
                 echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
