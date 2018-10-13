@@ -42,13 +42,9 @@
       "type": "int",
       "defaultValue": 8,
       "allowedValues": [
-        2,
         4,
-        6,
         8,
-        10,
         12,
-        14,
         16
       ],
       "metadata": {
