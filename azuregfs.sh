@@ -253,7 +253,6 @@ configure_gluster() {
     
     DNSsuffix=$(nslookup `hostname` | grep Name | cut -f 2 | cut -d "." -f 2-)
 
-    allNodes="${NODENAME}.${DNSsuffix}:${GLUSTERDIR}"
     retry=10
     failed=1
     while [ $retry -gt 0 ] && [ $failed -gt 0 ]; do
@@ -275,46 +274,29 @@ configure_gluster() {
                 failed=1
                 echo "gluster peer status ${PEERNODEPREFIX}${index} failed"
             fi
-            if [ $retry -eq 10 ]; then
-                allNodes="${allNodes} ${PEERNODEPREFIX}${index}.${DNSsuffix}:${GLUSTERDIR}"
-            fi
             let index++
         done
         sleep 30
         let retry--
     done
 
-gluster volume create ${VOLUMENAME} replica 3 arbiter 1 transport tcp \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}1.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}2.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}4.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}3.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}4.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}2.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}5.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}6.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}8.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}7.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}8.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}6.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive1/brick1 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive1/arbiter1 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive2/brick2 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive2/arbiter2 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive3/brick3 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive3/arbiter3 \
-${PEERNODEPREFIX}9.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}10.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}12.${DNSsuffix}:/arbiterdrive4/arbiter4 \
-${PEERNODEPREFIX}11.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}12.${DNSsuffix}:/datadrive4/brick4 ${PEERNODEPREFIX}10.${DNSsuffix}:/arbiterdrive4/arbiter4 
+    
+    let HOST=4
+    MKVOLCOMMAND=$(echo 'gluster volume create ${VOLUMENAME} replica 3 arbiter 1 transport tcp '
+        while [ $(($HOST)) -le $(($NUMHOSTS)) ]; 
+        do
+            let DISK=1
+            while [ $(($DISK)) -le $(($NUMDISKS)) ];
+                do 
+                echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
+                echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
+                let DISK=( $DISK + 1 )
+                done;
+        let HOST=( $HOST + 4 )
+        done;)
+        
+    eval ${MKVOLCOMMAND}
 
-
-
-    #gluster volume create ${VOLUMENAME} replica 2 transport tcp ${allNodes} 2>> /tmp/error << EOF
-#y
-#EOF
     
     gluster volume info 2>> /tmp/error
     gluster volume start ${VOLUMENAME} 2>> /tmp/error
