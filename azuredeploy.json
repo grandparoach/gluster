@@ -134,6 +134,7 @@
     },
     "vmNamePrefix": {
       "type": "string",
+      "defaultValue": "glusterhost",
       "metadata": {
         "description": "VM name prefix, a number will be appended for each node"
       }
