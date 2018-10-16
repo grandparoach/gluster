@@ -40,6 +40,10 @@ NODECOUNT=${4}
 MOUNTPOINT="/datadrive"
 ARBITERMOUNTPOINT="/arbiterdrive"
 
+RAIDCHUNKSIZE=128
+RAIDDISK="/dev/md12"
+RAIDDEVS=()
+
 VGNAME="glusterVG"
 LVPOOLNAME="thinpool"
 BRICKLV="brickLV"
@@ -83,16 +87,29 @@ get_disk_count() {
 }
 
 
+create_raid0() {
+    echo "Creating raid0"
+    index=0
+    while [ $index -lt $(($GLUSTERDISKCOUNT)) ]; do
+        yes | mdadm --create "${RAIDDISK}${index}" --name=data${index} --level=0 --chunk="$RAIDCHUNKSIZE" --raid-devices=3 ${DISKS[${index}]} ${DISKS[${index}+1]} ${DISKS[${index}+2]}
+        allNodes="${allNodes} ${PEERNODEPREFIX}${index}:${GLUSTERDIR}"
+        RAIDDEVS+=(${RAIDDISK}${index})
+        let index=( $index + 3 )
+    done;
+    mdadm --detail --verbose --scan > /etc/mdadm.conf
+    
+}
+
 
 
 do_gluster_LVM_partition() {
-
+    create_raid0
    index=1 
-   while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
-        pvcreate --dataalignment 256K ${DISKS[${index}-1]}
-        vgcreate ${VGNAME}${index} ${DISKS[${index}-1]}
-        blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
-        disksize=$(lsblk | grep $blockname | awk '{print $4}')
+   while [ $index -le ${#RAIDDEVS[@]} ]; do
+        pvcreate --dataalignment 256K ${RAIDDEVS[${index}-1]}
+        vgcreate ${VGNAME}${index} ${RAIDDEVS[${index}-1]}
+        blockname=$(echo ${RAIDDEVS[${index}-1]} | cut -d/ -f3)
+        disksize=$(lsblk | grep $blockname | head -1 | awk '{print $4}')
         if [ ${disksize: -1} == "T" ]; 
             then 
                 disksizeTB=$(echo $disksize | cut -dT -f1)
@@ -125,7 +142,7 @@ do_arbiter_LVM_partition() {
         
     let lvsize=($disksizeGB * 96 / 100 / $GLUSTERDISKCOUNT )
     index=1 
-    while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+    while [ $index -le ${#RAIDDEVS[@]} ]; do
         lvcreate --thin --name ${ARBITERBRICKLV}${index} --virtualsize "${lvsize}G" ${ARBITERVGNAME}/${ARBITERPOOLNAME}
         let index++
     done;
@@ -161,7 +178,7 @@ configure_disks() {
     
        
     index=1
-    while [ $index -le $GLUSTERDISKCOUNT ]; 
+    while [ $index -le ${#RAIDDEVS[@]} ]; 
     do 
         PARTITION="/dev/${VGNAME}${index}/${BRICKLV}${index}"
         echo "Creating filesystem on ${PARTITION}."
@@ -174,7 +191,7 @@ configure_disks() {
     if [ ${ARBITERHOST} -eq 0 ];
     then
         index=1
-        while [ $index -le $GLUSTERDISKCOUNT ]; 
+        while [ $index -le ${#RAIDDEVS[@]} ]; 
         do 
             PARTITION="/dev/${ARBITERVGNAME}/${ARBITERBRICKLV}${index}"
             echo "Creating filesystem on ${PARTITION}."
@@ -225,9 +242,7 @@ configure_gluster() {
    
     install_glusterfs
     service glusterd start
-    #gluster system:: uuid reset << EOF
-#y
-#EOF
+    
     
     index=1 
     while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
