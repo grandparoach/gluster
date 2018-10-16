@@ -158,10 +158,14 @@
     },
     "nbDataDisks": {
       "type": "int",
-      "defaultValue": 8,
-      "maxValue": 16,
+      "defaultValue": 3,
+      "allowedValues": [
+        3,
+        6,
+        9
+      ],
       "metadata": {
-        "description": "The number of disks to attach to each server."
+        "description": "The number of disks to attach to each server.  Must be a multiple of 3 for RAID striping"
       }
     },
     "volumeName": {
