@@ -104,8 +104,8 @@ create_raid0() {
 
 do_gluster_LVM_partition() {
     create_raid0
-   index=1 
-   while [ $index -le ${#RAIDDEVS[@]} ]; do
+    index=1 
+    while [ $index -le ${#RAIDDEVS[@]} ]; do
         pvcreate --dataalignment 256K ${RAIDDEVS[${index}-1]}
         vgcreate ${VGNAME}${index} ${RAIDDEVS[${index}-1]}
         blockname=$(echo ${RAIDDEVS[${index}-1]} | cut -d/ -f3)
@@ -245,7 +245,7 @@ configure_gluster() {
     
     
     index=1 
-    while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+    while [ $index -le ${#RAIDDEVS[@]} ]; do
         GLUSTERDIR="${MOUNTPOINT}${index}/brick${index}"
         mkdir "${GLUSTERDIR}"
         let index++
@@ -254,7 +254,7 @@ configure_gluster() {
     if [ ${ARBITERHOST} -eq 0 ];
     then   
         index=1 
-        while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
+        while [ $index -le ${#RAIDDEVS[@]} ]; do
             ARBITERDIR="${ARBITERMOUNTPOINT}${index}/arbiter${index}"
             mkdir "${ARBITERDIR}"
             let index++
@@ -301,7 +301,7 @@ configure_gluster() {
     while [ $(($HOST)) -le $(($NODECOUNT)) ]; 
         do
             let DISK=1
-            while [ $(($DISK)) -le $(($GLUSTERDISKCOUNT)) ];
+            while [ $(($DISK)) -le ${#RAIDDEVS[@]} ];
                 do 
                 echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
                 echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
