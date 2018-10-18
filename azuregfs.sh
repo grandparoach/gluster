@@ -113,7 +113,7 @@ do_gluster_LVM_partition() {
         if [ ${disksize: -1} == "T" ]; 
             then 
                 disksizeTB=$(echo $disksize | cut -dT -f1)
-                let disksizeGB=($disksizeTB * 1024)
+                disksizeGB=$(bc <<< "$disksizeTB * 1024 / 1")
             else
                 disksizeGB=$(echo $disksize | cut -dG -f1)
         fi
@@ -135,7 +135,7 @@ do_arbiter_LVM_partition() {
         if [ ${disksize: -1} == "T" ]; 
             then 
                 disksizeTB=$(echo $disksize | cut -dT -f1)
-                let disksizeGB=($disksizeTB * 1024)
+                disksizeGB=$(bc <<< "$disksizeTB * 1024 / 1")
             else
                 disksizeGB=$(echo $disksize | cut -dG -f1)
         fi
