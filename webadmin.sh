@@ -157,7 +157,7 @@ MOUNTPOINT=/mnt/${GLUSTERVOLUME}
 mkdir -p ${MOUNTPOINT}
 
 #Build list of servers
-GFSSERVER=$((1 + RANDOM % 7 ))
+GFSSERVER=$((1 + RANDOM % (${NODECOUNT}-1) ))
 backupNodes="${PEERNODEPREFIX}${NODECOUNT}"
 index=1
 while [ $index -lt ${NODECOUNT} ] ; do
