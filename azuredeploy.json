@@ -316,7 +316,7 @@
 
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "GlusterWebAdmin",
+      "name": "GlusterMonitor",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
       "dependsOn": [
@@ -328,7 +328,7 @@
           "vmSize": "[parameters('GlusterWebAdminVMsku')]"
         },
         "osProfile": {
-          "computerName": "GlusterWebAdmin",
+          "computerName": "GlusterMonitor",
           "adminUsername": "[parameters('adminUserName')]",
           "adminPassword": "[parameters('adminPassword')]",
           "linuxConfiguration": "[variables('linuxConfiguration')]"
@@ -374,11 +374,11 @@
      
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat('GlusterWebAdmin', '/ext')]",
+      "name": "[concat('GlusterMonitor', '/ext')]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterWebAdmin')]",
+        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterMonitor')]",
         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), parameters('scaleNumber'), '/extensions/extension')]"
       ],
       "properties": {
