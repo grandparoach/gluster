@@ -154,10 +154,10 @@ configure_disks() {
     
     do_gluster_LVM_partition ${DISKS[@]}
 
-    if [ ${ARBITERHOST} -eq 0 ];
-    then
-        do_arbiter_LVM_partition ${DISKS[@]}
-    fi
+    #if [ ${ARBITERHOST} -eq 0 ];
+    #then
+    #    do_arbiter_LVM_partition ${DISKS[@]}
+    #fi
     
        
     index=1
@@ -171,20 +171,20 @@ configure_disks() {
         let index++
     done;
     
-    if [ ${ARBITERHOST} -eq 0 ];
-    then
-        index=1
-        while [ $index -le $GLUSTERDISKCOUNT ]; 
-        do 
-            PARTITION="/dev/${ARBITERVGNAME}/${ARBITERBRICKLV}${index}"
-            echo "Creating filesystem on ${PARTITION}."
-            mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
-            mkdir -p "${ARBITERMOUNTPOINT}${index}"
-            echo -e "${PARTITION}\t${ARBITERMOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
-            let index++
-    done;  
-       
-    fi
+    #if [ ${ARBITERHOST} -eq 0 ];
+    #then
+    #    index=1
+    #    while [ $index -le $GLUSTERDISKCOUNT ]; 
+    #    do 
+    #        PARTITION="/dev/${ARBITERVGNAME}/${ARBITERBRICKLV}${index}"
+    #        echo "Creating filesystem on ${PARTITION}."
+    #        mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
+    #        mkdir -p "${ARBITERMOUNTPOINT}${index}"
+    #        echo -e "${PARTITION}\t${ARBITERMOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
+    #        let index++
+    #done;  
+    #   
+    #fi
 
     echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
@@ -240,7 +240,7 @@ configure_gluster() {
     then   
         index=1 
         while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
-            ARBITERDIR="${ARBITERMOUNTPOINT}${index}/arbiter${index}"
+            ARBITERDIR="/mnt/resource/arbiter${index}"
             mkdir "${ARBITERDIR}"
             let index++
         done;
@@ -288,8 +288,8 @@ configure_gluster() {
             let DISK=1
             while [ $(($DISK)) -le $(($GLUSTERDISKCOUNT)) ];
                 do 
-                echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
-                echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
+                echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/mnt/resource/arbiter'$DISK' '
+                echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/mnt/resource/arbiter'$DISK' '
                 let DISK=( $DISK + 1 )
                 done;
         let HOST=( $HOST + 4 )
