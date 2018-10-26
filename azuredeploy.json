@@ -432,16 +432,7 @@
                 "storageAccountType": "Premium_LRS"
                }
             },
-            "copy": [{
-                "name": "dataDisks",
-                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), parameters('nbDataDisks'), add(parameters('nbDataDisks'), 1)) ]",
-                "input": {
-                    "lun": "[copyIndex('dataDisks')]",
-                    "createOption": "Empty",
-                    "caching": "ReadOnly",
-                    "diskSizeGB": "[parameters('datadiskSize')]"
-                }
-            }]
+            "dataDisks": []
 
 
         },
