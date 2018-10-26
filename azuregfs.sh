@@ -147,9 +147,9 @@ configure_disks() {
             
     if [ ${ARBITERHOST} -eq 0 ];
     then
-        let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
+        let GLUSTERDISKCOUNT=($DISKCOUNT - 2)
     else
-        let GLUSTERDISKCOUNT=$DISKCOUNT
+        let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
     fi
     
     do_gluster_LVM_partition ${DISKS[@]}
