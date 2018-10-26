@@ -147,7 +147,7 @@ configure_disks() {
             
     if [ ${ARBITERHOST} -eq 0 ];
     then
-        let GLUSTERDISKCOUNT=($DISKCOUNT - 2)
+        let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
     else
         let GLUSTERDISKCOUNT=($DISKCOUNT - 1)
     fi
