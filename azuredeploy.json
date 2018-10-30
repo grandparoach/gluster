@@ -437,7 +437,7 @@
                     "lun": "[copyIndex('dataDisks')]",
                     "createOption": "Empty",
                     "caching": "ReadOnly",
-                    "diskSizeGB": "[if(greater(copyIndex('datadisk'), parameters('nbDataDisks')), 128, parameters('datadiskSize'))]"
+                    "diskSizeGB": "[if(greaterOrEquals(copyIndex('dataDisks'), parameters('nbDataDisks')), 128, parameters('datadiskSize'))]"
                 }
             }]
 
