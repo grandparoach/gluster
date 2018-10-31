@@ -264,7 +264,7 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "GlusterWebAdmin-PublicIP",
       "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2018-02-01",
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
       },
@@ -274,7 +274,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "GlusterWebAdmin-nic",
       "location": "[resourceGroup().location]",
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2018-02-01",
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/GlusterWebAdmin-PublicIP')]"
       ],
@@ -297,7 +297,7 @@
       }
     },    
     {
-      "apiVersion": "2018-04-01",
+      "apiVersion": "2018-02-01",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicName'), copyindex(1))]",
       "location": "[resourceGroup().location]",
@@ -419,10 +419,7 @@
         "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]",
         "diskLoop"
       ],
-      "properties": {
-        "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', 'GlusterAVSet')]"
-        },  
+      "properties": {  
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
         },
