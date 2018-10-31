@@ -178,7 +178,7 @@ configure_disks() {
         index=1
         while [ $index -le $GLUSTERDISKCOUNT ]; 
         do 
-            PARTITION="/dev/${ARBITERVGNAME}/${ARBITERBRICKLV}${index}"
+            PARTITION="/dev/${ARBITERVGNAME}${index}/${ARBITERBRICKLV}${index}"
             echo "Creating filesystem on ${PARTITION}."
             mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
             mkdir -p "${ARBITERMOUNTPOINT}${index}"
@@ -365,3 +365,4 @@ allow_passwordssh
 configure_disks
 configure_gluster
 configure_tendrl
+
