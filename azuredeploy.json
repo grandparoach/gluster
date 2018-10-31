@@ -102,34 +102,24 @@
     },
     "vmSize": {
       "type": "string",
-      "defaultValue": "Standard_E32s_v3",
+      "defaultValue": "Standard_E64s_v3",
       "allowedValues": [
-        "Standard_DS3_v2",
-        "Standard_DS4_v2",
-        "Standard_DS5_v2",
-        "Standard_DS11_v2",
-        "Standard_DS12_v2",
-        "Standard_DS13_v2",
-        "Standard_DS14_v2",
-        "Standard_DS15_v2",
-        
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
         "Standard_D8s_v3",
         "Standard_D16s_v3",
         "Standard_D32s_v3",
         "Standard_D64s_v3",
-    
+        "Standard_E2s_v3",
+        "Standard_E4s_v3",
         "Standard_E8s_v3",
         "Standard_E16s_v3",
         "Standard_E32s_v3",
         "Standard_E64s_v3",
-      
-        "Standard_F8s_v2",
-        "Standard_F16s_v2",
-        "Standard_F32s_v2",
-        "Standard_F64s_v2"
+        "Standard_E64is_v3"
       ],
       "metadata": {
-        "description": "sku to use for the NFS server VM"
+        "description": "sku to use for the gluster hosts"
       }
     },
     "vmNamePrefix": {
@@ -143,6 +133,9 @@
       "type": "int",
       "defaultValue": 512,
       "allowedValues": [
+        4,
+        8,
+        16,
         32,
         64,
         128,
@@ -153,19 +146,28 @@
         4095
       ],
       "metadata": {
-        "description": "The size of the datadisks to be striped. The total capacity will be this size multiplied by the number of data disks you specify."
+        "description": "The size of the datadisks."
       }
     },
     "nbDataDisks": {
       "type": "int",
-      "defaultValue": 3,
-      "allowedValues": [
-        3,
-        6,
-        9
-      ],
+      "defaultValue": 1,
       "metadata": {
-        "description": "The number of disks to attach to each server.  Must be a multiple of 3 for RAID striping"
+        "description": "The number of disks to attach to each server."
+      }
+    },
+    "diskIOPSReadWrite": {
+      "type": "int",
+      "defaultValue": 80000,
+      "metadata": {
+            "description": "Data Disk IOPS value representing the maximum IOPS that the disk can achieve."
+      }  
+    },
+    "diskMbpsReadWrite": {
+      "type": "int",
+      "defaultValue": 1000,
+      "metadata": {
+            "description": "Data Disk MBps value representing the maximum throughput that the disk can achieve."
       }
     },
     "volumeName": {
@@ -199,14 +201,13 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/EDA/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/gluster/Ultra/azuregfs.sh" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/webadmin.sh",  
-        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/ssh_copy_id.exp" 
+        "https://raw.githubusercontent.com/grandparoach/gluster/Ultra/webadmin.sh" 
       ],
       "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
@@ -227,22 +228,29 @@
   },
   "resources": [
     {
-        "type": "Microsoft.Compute/availabilitySets",
-            "sku": {
-                "name": "Aligned"
+        "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",    
+        "type": "Microsoft.Compute/disks",
+        "apiVersion": "2018-06-01",
+        "zones": ["3"],
+        "location": "[resourceGroup().location]",
+        "copy": {
+            "name": "diskLoop",
+            "count": "[parameters('scaleNumber')]"
+          },
+        "sku": {
+            "name": "UltraSSD_LRS"
+        },
+        "properties": {
+            "creationData": {
+                "createOption": "Empty"
             },
-            "name": "GlusterAVSet",
-            "apiVersion": "2017-12-01",
-            "location": "[resourceGroup().location]",
-            "tags": {},
-            "scale": null,
-            "properties": {
-                "platformUpdateDomainCount": 5,
-                "platformFaultDomainCount": 2,
-                "virtualMachines": []
-            },
-        "dependsOn": []
+            "diskSizeGB": "[parameters('dataDiskSize')]",
+            "diskIOPSReadWrite": "[parameters('diskIOPSReadWrite')]",
+            "diskMBpsReadWrite": "[parameters('diskMBpsReadWrite')]"
+        }       
     },
+    
+    
     {
         "type": "Microsoft.Storage/storageAccounts",
         "name": "[variables('DiagSAName')]",
@@ -259,7 +267,8 @@
       "apiVersion": "2016-03-30",
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
-      }
+      },
+      "zones": ["3"]
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
@@ -317,8 +326,9 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "GlusterWebAdmin",
+      "zones": ["3"],
       "location": "[resourceGroup().location]",
-      "apiVersion": "2016-04-30-preview",
+      "apiVersion": "2018-06-01",
       "dependsOn": [
         "[concat('Microsoft.Network/networkinterfaces/GlusterWebAdmin-nic')]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
@@ -395,9 +405,10 @@
       }
     },
     {
-      "apiVersion": "2017-03-30",
+      "apiVersion": "2018-06-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
+      "zones": ["3"],
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "gfs",
@@ -406,7 +417,7 @@
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex(1))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]",
-        "[concat('Microsoft.Compute/availabilitySets/GlusterAVSet')]"
+        "diskLoop"
       ],
       "properties": {
         "availabilitySet": {
@@ -414,6 +425,9 @@
         },  
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
+        },
+        "additionalCapabilities" : {
+            "ultraSSDEnabled" : "true"
         },
         "osProfile": {
           "computerName": "[concat(parameters('vmNamePrefix'), copyIndex(1))]",
@@ -430,17 +444,16 @@
                 "storageAccountType": "Premium_LRS"
                }
             },
-            "copy": [{
-                "name": "dataDisks",
-                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), parameters('nbDataDisks'), mul(parameters('nbDataDisks'), 2)) ]",
-                "input": {
-                    "lun": "[copyIndex('dataDisks')]",
-                    "createOption": "Empty",
-                    "caching": "ReadOnly",
-                    "diskSizeGB": "[if(greaterOrEquals(copyIndex('dataDisks'), parameters('nbDataDisks')), 128, parameters('datadiskSize'))]"
+
+            "dataDisks": [{
+                "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",
+                "lun": 0,
+                "createOption": "attach",
+                "managedDisk": {
+                    "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1)))]"
                 }
             }]
-
+            
 
         },
         "networkProfile": {
