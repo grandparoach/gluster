@@ -102,7 +102,7 @@
     },
     "vmSize": {
       "type": "string",
-      "defaultValue": "Standard_E32s_v3",
+      "defaultValue": "Standard_L64s_v2",
       "allowedValues": [
         "Standard_DS3_v2",
         "Standard_DS4_v2",
@@ -126,7 +126,11 @@
         "Standard_F8s_v2",
         "Standard_F16s_v2",
         "Standard_F32s_v2",
-        "Standard_F64s_v2"
+        "Standard_F64s_v2",
+
+        "Standard_L32s_v2",
+        "Standard_L64s_v2",
+        "Standard_L80s_v2"
       ],
       "metadata": {
         "description": "sku to use for the NFS server VM"
@@ -137,35 +141,6 @@
       "defaultValue": "glusterhost",
       "metadata": {
         "description": "VM name prefix, a number will be appended for each node"
-      }
-    },
-    "dataDiskSize": {
-      "type": "int",
-      "defaultValue": 512,
-      "allowedValues": [
-        32,
-        64,
-        128,
-        256,
-        512,
-        1024,
-        2048,
-        4095
-      ],
-      "metadata": {
-        "description": "The size of the datadisks to be striped. The total capacity will be this size multiplied by the number of data disks you specify."
-      }
-    },
-    "nbDataDisks": {
-      "type": "int",
-      "defaultValue": 3,
-      "allowedValues": [
-        3,
-        6,
-        9
-      ],
-      "metadata": {
-        "description": "The number of disks to attach to each server.  Must be a multiple of 3 for RAID striping"
       }
     },
     "volumeName": {
@@ -199,14 +174,14 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/EDA/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/azuregfs.sh" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/webadmin.sh",  
-        "https://raw.githubusercontent.com/grandparoach/gluster/EDA/ssh_copy_id.exp" 
+        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/webadmin.sh",  
+        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/ssh_copy_id.exp" 
       ],
       "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
@@ -430,18 +405,8 @@
                 "storageAccountType": "Premium_LRS"
                }
             },
-            "copy": [{
-                "name": "dataDisks",
-                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), parameters('nbDataDisks'), mul(parameters('nbDataDisks'), 2)) ]",
-                "input": {
-                    "lun": "[copyIndex('dataDisks')]",
-                    "createOption": "Empty",
-                    "caching": "ReadOnly",
-                    "diskSizeGB": "[if(greaterOrEquals(copyIndex('dataDisks'), parameters('nbDataDisks')), 128, parameters('datadiskSize'))]"
-                }
-            }]
-
-
+            "dataDisks": []
+        
         },
         "networkProfile": {
           "networkInterfaces": [
