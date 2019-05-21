@@ -54,35 +54,6 @@ ARBITERBRICKLV="arbiterbrickLV"
 let ARBITERHOST=( `hostname | sed -s "s/$PEERNODEPREFIX//"` % 2)
 
 
-# An set of disks to ignore from partitioning and formatting
-BLACKLIST="/dev/sda|/dev/sdb"
-
-scan_for_new_disks() {
-    # Looks for unpartitioned disks
-    declare -a RET
-    DEVS=($(ls -1 /dev/sd*|egrep -v "${BLACKLIST}"|egrep -v "[0-9]$"))
-    for DEV in "${DEVS[@]}";
-    do
-        # Check each device if there is a "1" partition.  If not,
-        # "assume" it is not partitioned.
-        if [ ! -b ${DEV}1 ];
-        then
-            RET+="${DEV} "
-        fi
-    done
-    echo "${RET}"
-}
-
-get_disk_count() {
-    DISKCOUNT=0
-    for DISK in "${DISKS[@]}";
-    do 
-        DISKCOUNT+=1
-    done;
-    echo "$DISKCOUNT"
-}
-
-
 
 
 do_gluster_LVM_partition() {
@@ -141,10 +112,11 @@ configure_disks() {
     then 
         return
     fi
-    DISKS=($(scan_for_new_disks))
+
+    DISKS=($(ls -1 /dev/nvme*n1))
     echo "Disks are ${DISKS[@]}"
-    declare -i DISKCOUNT
-    DISKCOUNT=$(get_disk_count) 
+    
+    DISKCOUNT=($(ls -1 /dev/nvme*n1| wc -l))
     echo "Disk count is $DISKCOUNT"
             
     if [ ${ARBITERHOST} -eq 0 ];
@@ -365,4 +337,3 @@ allow_passwordssh
 configure_disks
 configure_gluster
 configure_tendrl
-
