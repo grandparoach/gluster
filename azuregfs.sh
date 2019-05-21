@@ -119,21 +119,13 @@ configure_disks() {
     DISKCOUNT=($(ls -1 /dev/nvme*n1| wc -l))
     echo "Disk count is $DISKCOUNT"
             
-    if [ ${ARBITERHOST} -eq 0 ];
-    then
-        GLUSTERDISKCOUNT=$(bc <<< "$DISKCOUNT / 2 / 1")
-    else
-        let GLUSTERDISKCOUNT=$DISKCOUNT
-    fi
+    
+    let GLUSTERDISKCOUNT=$DISKCOUNT
+    
     
     do_gluster_LVM_partition ${DISKS[@]}
 
-    if [ ${ARBITERHOST} -eq 0 ];
-    then
-        do_arbiter_LVM_partition ${DISKS[@]}
-    fi
-    
-       
+           
     index=1
     while [ $index -le $GLUSTERDISKCOUNT ]; 
     do 
@@ -144,21 +136,6 @@ configure_disks() {
         echo -e "${PARTITION}\t${MOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
         let index++
     done;
-    
-    if [ ${ARBITERHOST} -eq 0 ];
-    then
-        index=1
-        while [ $index -le $GLUSTERDISKCOUNT ]; 
-        do 
-            PARTITION="/dev/${ARBITERVGNAME}${index}/${ARBITERBRICKLV}${index}"
-            echo "Creating filesystem on ${PARTITION}."
-            mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
-            mkdir -p "${ARBITERMOUNTPOINT}${index}"
-            echo -e "${PARTITION}\t${ARBITERMOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
-            let index++
-    done;  
-       
-    fi
 
     echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
