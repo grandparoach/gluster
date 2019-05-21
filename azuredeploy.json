@@ -104,30 +104,6 @@
       "type": "string",
       "defaultValue": "Standard_L64s_v2",
       "allowedValues": [
-        "Standard_DS3_v2",
-        "Standard_DS4_v2",
-        "Standard_DS5_v2",
-        "Standard_DS11_v2",
-        "Standard_DS12_v2",
-        "Standard_DS13_v2",
-        "Standard_DS14_v2",
-        "Standard_DS15_v2",
-        
-        "Standard_D8s_v3",
-        "Standard_D16s_v3",
-        "Standard_D32s_v3",
-        "Standard_D64s_v3",
-    
-        "Standard_E8s_v3",
-        "Standard_E16s_v3",
-        "Standard_E32s_v3",
-        "Standard_E64s_v3",
-      
-        "Standard_F8s_v2",
-        "Standard_F16s_v2",
-        "Standard_F32s_v2",
-        "Standard_F64s_v2",
-
         "Standard_L32s_v2",
         "Standard_L64s_v2",
         "Standard_L80s_v2"
