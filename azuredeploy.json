@@ -104,6 +104,7 @@
       "type": "string",
       "defaultValue": "Standard_L64s_v2",
       "allowedValues": [
+        "Standard_L16s_v2",
         "Standard_L32s_v2",
         "Standard_L64s_v2",
         "Standard_L80s_v2"
@@ -128,6 +129,11 @@
     }
   },
   "variables": {
+    "zero": 0,
+    "two": 2,
+    "four": 4,
+    "eight": 8,
+    "ten": 10,
     "nicName": "nic",
     "DiagSAName": "[concat(uniqueString(subscription().id, resourceGroup().id), 'diag')]",
     "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
@@ -381,7 +387,17 @@
                 "storageAccountType": "Premium_LRS"
                }
             },
-            "dataDisks": []
+            "copy": [{
+                "name": "dataDisks",
+                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), variables('zero'), if(equals(parameters('vmSize'), 'Standard_L16s_v2'), variables('two'), if(equals(parameters('vmSize'), 'Standard_L32s_v2'), variables('four'), if(equals(parameters('vmSize'), 'Standard_L64s_v2'), variables('eight'), if(equals(parameters('vmSize'), 'Standard_L80s_v2'), variables('ten'), variables('zero'))))))]",
+                "input": {
+                    "lun": "[copyIndex('dataDisks')]",
+                    "createOption": "Empty",
+                    "caching": "None",
+                    "diskSizeGB": "512"
+                }
+            }]
+
         
         },
         "networkProfile": {
