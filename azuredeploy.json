@@ -102,32 +102,12 @@
     },
     "vmSize": {
       "type": "string",
-      "defaultValue": "Standard_L16s_v2",
+      "defaultValue": "Standard_L64s_v2",
       "allowedValues": [
-        "Standard_L16s_v2",  
-        "Standard_DS3_v2",
-        "Standard_DS4_v2",
-        "Standard_DS5_v2",
-        "Standard_DS11_v2",
-        "Standard_DS12_v2",
-        "Standard_DS13_v2",
-        "Standard_DS14_v2",
-        "Standard_DS15_v2",
-        
-        "Standard_D8s_v3",
-        "Standard_D16s_v3",
-        "Standard_D32s_v3",
-        "Standard_D64s_v3",
-    
-        "Standard_E8s_v3",
-        "Standard_E16s_v3",
-        "Standard_E32s_v3",
-        "Standard_E64s_v3",
-      
-        "Standard_F8s_v2",
-        "Standard_F16s_v2",
-        "Standard_F32s_v2",
-        "Standard_F64s_v2"
+        "Standard_L16s_v2",
+        "Standard_L32s_v2",
+        "Standard_L64s_v2",
+        "Standard_L80s_v2"
       ],
       "metadata": {
         "description": "sku to use for the NFS server VM"
@@ -138,36 +118,6 @@
       "defaultValue": "glusterhost",
       "metadata": {
         "description": "VM name prefix, a number will be appended for each node"
-      }
-    },
-    "dataDiskSize": {
-      "type": "int",
-      "defaultValue": 512,
-      "allowedValues": [
-        32,
-        64,
-        128,
-        256,
-        512,
-        1024,
-        2048,
-        4095
-      ],
-      "metadata": {
-        "description": "The size of the datadisks to be striped. The total capacity will be this size multiplied by the number of data disks you specify."
-      }
-    },
-    "nbDataDisks": {
-      "type": "int",
-      "defaultValue": 0,
-      "allowedValues": [
-        0,  
-        3,
-        6,
-        9
-      ],
-      "metadata": {
-        "description": "The number of disks to attach to each server.  Must be a multiple of 3 for RAID striping"
       }
     },
     "volumeName": {
@@ -201,14 +151,14 @@
 
     "glusterScripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/LSeries/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/azuregfs.sh" 
         ],
         "commandToExecute": "[concat('bash azuregfs.sh ')]"
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/gluster/LSeries/webadmin.sh",  
-        "https://raw.githubusercontent.com/grandparoach/gluster/LSeries/ssh_copy_id.exp" 
+        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/webadmin.sh",  
+        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/ssh_copy_id.exp" 
       ],
       "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
@@ -318,7 +268,7 @@
 
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "GlusterMonitor",
+      "name": "GlusterWebAdmin",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
       "dependsOn": [
@@ -330,7 +280,7 @@
           "vmSize": "[parameters('GlusterWebAdminVMsku')]"
         },
         "osProfile": {
-          "computerName": "GlusterMonitor",
+          "computerName": "GlusterWebAdmin",
           "adminUsername": "[parameters('adminUserName')]",
           "adminPassword": "[parameters('adminPassword')]",
           "linuxConfiguration": "[variables('linuxConfiguration')]"
@@ -376,11 +326,11 @@
      
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat('GlusterMonitor', '/ext')]",
+      "name": "[concat('GlusterWebAdmin', '/ext')]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterMonitor')]",
+        "[concat('Microsoft.Compute/virtualMachines/', 'GlusterWebAdmin')]",
         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), parameters('scaleNumber'), '/extensions/extension')]"
       ],
       "properties": {
@@ -432,9 +382,18 @@
                 "storageAccountType": "Premium_LRS"
                }
             },
-            "dataDisks": []
+            "copy": [{
+                "name": "dataDisks",
+                "count": "[if(equals(mod(copyIndex('gfs'), 2), 0), 0, if(equals(parameters('vmSize'), 'Standard_L16s_v2'), 2, if(equals(parameters('vmSize'), 'Standard_L32s_v2'), 4, if(equals(parameters('vmSize'), 'Standard_L64s_v2'), 8, if(equals(parameters('vmSize'), 'Standard_L80s_v2'), 10, 0)))))]",
+                "input": {
+                    "lun": "[copyIndex('dataDisks')]",
+                    "createOption": "Empty",
+                    "caching": "None",
+                    "diskSizeGB": "512"
+                }
+            }]
 
-
+        
         },
         "networkProfile": {
           "networkInterfaces": [
