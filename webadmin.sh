@@ -36,7 +36,7 @@ fi
 
 install_tendrl() {
 
-subscription-manager attach --pool=8a85f9875f7334a1015f74b57adf779e
+subscription-manager attach --pool=8a85f99765c8c8380166abdc00dc2527
 subscription-manager repos --disable="*" 
 subscription-manager repos --enable=rhel-7-server-rpms
 subscription-manager repos --enable=rh-gluster-3-web-admin-server-for-rhel-7-server-rpms
