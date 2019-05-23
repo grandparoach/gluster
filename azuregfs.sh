@@ -53,6 +53,33 @@ ARBITERBRICKLV="arbiterbrickLV"
 
 let ARBITERHOST=( `hostname | sed -s "s/$PEERNODEPREFIX//"` % 2)
 
+# An set of disks to ignore from partitioning and formatting
+BLACKLIST="/dev/sda|/dev/sdb"
+
+scan_for_new_disks() {
+    # Looks for unpartitioned disks
+    declare -a RET
+    DEVS=($(ls -1 /dev/sd*|egrep -v "${BLACKLIST}"|egrep -v "[0-9]$"))
+    for DEV in "${DEVS[@]}";
+    do
+        # Check each device if there is a "1" partition.  If not,
+        # "assume" it is not partitioned.
+        if [ ! -b ${DEV}1 ];
+        then
+            RET+="${DEV} "
+        fi
+    done
+    echo "${RET}"
+}
+
+get_disk_count() {
+    DISKCOUNT=0
+    for DISK in "${DISKS[@]}";
+    do 
+        DISKCOUNT+=1
+    done;
+    echo "$DISKCOUNT"
+}
 
 
 
@@ -60,9 +87,9 @@ do_gluster_LVM_partition() {
 
    index=1 
    while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
-        pvcreate --dataalignment 256K ${DISKS[${index}-1]}
-        vgcreate ${VGNAME}${index} ${DISKS[${index}-1]}
-        blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
+        pvcreate --dataalignment 256K ${NVMEDISKS[${index}-1]}
+        vgcreate ${VGNAME}${index} ${NVMEDISKS[${index}-1]}
+        blockname=$(echo ${NVMEDISKS[${index}-1]} | cut -d/ -f3)
         disksize=$(lsblk | grep $blockname | awk '{print $4}')
         if [ ${disksize: -1} == "T" ]; 
             then 
@@ -73,7 +100,6 @@ do_gluster_LVM_partition() {
         fi
         let lvsize=($disksizeGB * 96 / 100 )
         lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --zero n
-#        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
         let index++
     done;
 
@@ -81,11 +107,10 @@ do_gluster_LVM_partition() {
 
 do_arbiter_LVM_partition() {
 
-    let index=($DISKCOUNT - $GLUSTERDISKCOUNT + 1)
-    let indexA=1 
+    let index=1 
     while [ $index -le $(($DISKCOUNT)) ]; do
         pvcreate --dataalignment 256K ${DISKS[${index}-1]}
-        vgcreate ${ARBITERVGNAME}${indexA} ${DISKS[${index}-1]}
+        vgcreate ${ARBITERVGNAME}${index} ${DISKS[${index}-1]}
         blockname=$(echo ${DISKS[${index}-1]} | cut -d/ -f3)
         disksize=$(lsblk | grep $blockname | awk '{print $4}')
         if [ ${disksize: -1} == "T" ]; 
@@ -96,10 +121,8 @@ do_arbiter_LVM_partition() {
                 disksizeGB=$(echo $disksize | cut -dG -f1)
         fi
         let lvsize=($disksizeGB * 96 / 100 )
-        lvcreate -L "${lvsize}G" -T ${ARBITERVGNAME}${indexA}/${ARBITERPOOLNAME}${indexA} -V "${lvsize}G" -n ${ARBITERBRICKLV}${indexA} --chunksize 256k --zero n
-#        lvcreate -L "${lvsize}G" -T ${VGNAME}${index}/${LVPOOLNAME}${index} -V "${lvsize}G" -n ${BRICKLV}${index} --chunksize 256k --poolmetadatasize 16G --zero n ${DISKS[${index}-1]}
+        lvcreate -L "${lvsize}G" -T ${ARBITERVGNAME}${index}/${ARBITERPOOLNAME}${index} -V "${lvsize}G" -n ${ARBITERBRICKLV}${index} --chunksize 256k --zero n
         let index++
-        let indexA++
     done;
 
 
@@ -113,17 +136,27 @@ configure_disks() {
         return
     fi
 
-    DISKS=($(ls -1 /dev/nvme*n1))
-    echo "Disks are ${DISKS[@]}"
+    if [ ${ARBITERHOST} -eq 0 ];
+    then   
+        DISKS=($(scan_for_new_disks))
+        echo "Arbiter Disks are ${DISKS[@]}"
+        declare -i DISKCOUNT
+        DISKCOUNT=$(get_disk_count) 
+        echo "Arbiter Disk count is $DISKCOUNT"
+        do_arbiter_LVM_partition ${DISKS[@]}
+    fi
     
-    DISKCOUNT=($(ls -1 /dev/nvme*n1| wc -l))
-    echo "Disk count is $DISKCOUNT"
+    NVMEDISKS=($(ls -1 /dev/nvme*n1))
+    echo "Gluster Disks are ${NVMEDISKS[@]}"
+    
+    NVMEDISKCOUNT=($(ls -1 /dev/nvme*n1| wc -l))
+    echo "Gluster Disk count is $NVMEDISKCOUNT"
             
     
-    let GLUSTERDISKCOUNT=$DISKCOUNT
+    let GLUSTERDISKCOUNT=$NVMEDISKCOUNT
     
     
-    do_gluster_LVM_partition ${DISKS[@]}
+    do_gluster_LVM_partition ${NVMEDISKS[@]}
 
            
     index=1
@@ -136,6 +169,21 @@ configure_disks() {
         echo -e "${PARTITION}\t${MOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
         let index++
     done;
+
+    if [ ${ARBITERHOST} -eq 0 ];
+    then
+        index=1
+        while [ $index -le $GLUSTERDISKCOUNT ]; 
+        do 
+            PARTITION="/dev/${ARBITERVGNAME}${index}/${ARBITERBRICKLV}${index}"
+            echo "Creating filesystem on ${PARTITION}."
+            mkfs.xfs -f -K -i size=512 -n size=8192 ${PARTITION}
+            mkdir -p "${ARBITERMOUNTPOINT}${index}"
+            echo -e "${PARTITION}\t${ARBITERMOUNTPOINT}${index}\txfs\tdefaults,inode64,nobarrier,noatime 0 2"  | sudo tee -a /etc/fstab 
+            let index++
+    done;  
+       
+    fi
 
     echo "Mounting disk ${PARTITION}${index} on ${MOUNTPOINT}${index}"
 
@@ -155,7 +203,7 @@ open_ports() {
 
 install_glusterfs() {
 
-    subscription-manager attach --pool=8a85f9875f7334a1015f74b579f67798
+    subscription-manager attach --pool=8a85f99765c8c8380166abdc00dc2527
     subscription-manager repos --disable "*"
     subscription-manager repos --enable=rhel-7-server-rpms
     subscription-manager repos --enable=rh-gluster-3-for-rhel-7-server-rpms
@@ -191,7 +239,7 @@ configure_gluster() {
     then   
         index=1 
         while [ $index -le $(($GLUSTERDISKCOUNT)) ]; do
-            ARBITERDIR="/mnt/resource/arbiter${index}"
+            ARBITERDIR="${ARBITERMOUNTPOINT}${index}/abiterbrick${index}"
             mkdir "${ARBITERDIR}"
             let index++
         done;
