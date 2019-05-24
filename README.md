@@ -15,7 +15,7 @@ NFS is disabled, so all the clients must use the gluster native fuse client to a
 
 This template will also provision a separate Machine for running the Gluster Web Administration tools.  To launch the monitor tool:
 
-1. When the deployment is complete, point your web browser to the public IP address of the GlusterWebAdmin VM.
+1. When the deployment is complete (it takes about 50 minutes to deploy everything), point your web browser to the public IP address of the GlusterWebAdmin VM.
 2. When prompted for credentials, enter "admin" for the userID and "adminuser" for the password.
 3. Click on the "Import" on the right edge of the screen.
 4. Assign a name to the cluster and click "Import" at the bottom of the screen.
