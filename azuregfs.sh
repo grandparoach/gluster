@@ -287,8 +287,8 @@ configure_gluster() {
             let DISK=1
             while [ $(($DISK)) -le $(($GLUSTERDISKCOUNT)) ];
                 do 
-                echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/mnt/resource/arbiter'$DISK' '
-                echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/mnt/resource/arbiter'$DISK' '
+                echo '${PEERNODEPREFIX}'$(($HOST-3))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
+                echo '${PEERNODEPREFIX}'$(($HOST-1))'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$HOST'.${DNSsuffix}:/datadrive'$DISK'/brick'$DISK' ${PEERNODEPREFIX}'$(($HOST-2))'.${DNSsuffix}:/arbiterdrive'$DISK'/arbiter'$DISK' '
                 let DISK=( $DISK + 1 )
                 done;
         let HOST=( $HOST + 4 )
