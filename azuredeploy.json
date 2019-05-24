@@ -131,8 +131,7 @@
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/webadmin.sh",  
-        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/ssh_copy_id.exp" 
+        "https://raw.githubusercontent.com/grandparoach/gluster/LseriesEDA/webadmin.sh"
       ],
       "commandToExecute": "[concat('bash webadmin.sh ')]"
     },
