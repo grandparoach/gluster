@@ -13,7 +13,14 @@ The even numbered VM's will also have Premium disks attched to use as the arbite
 
 NFS is disabled, so all the clients must use the gluster native fuse client to access the file system.  This will enable automatic failover.  Please see the example of the mount command in the [gfsclient.sh](https://github.com/grandparoach/gluster/blob/LseriesEDA/gfsclient.sh) script for how to specify the backup servers.
 
-This template will also provision a separate Machine for running the Gluster Web Administration tools.  When the deployment is complete, point your web browser to the public IP address of the GlusterWebAdmin VM.  When prompted for credentials, enter "admin" for the userID and "adminuser" for the password.   Then, click on the "Import" on the right edge of the screen.  Assign a name to the cluster and click "Import" at the bottom of the screen.  Then click "View Progress".  When the import is completed, click on "View cluster details" to launch the monitoring dashboard.
+This template will also provision a separate Machine for running the Gluster Web Administration tools.  To launch the monitor tool:
+
+1. When the deployment is complete, point your web browser to the public IP address of the GlusterWebAdmin VM.
+2. When prompted for credentials, enter "admin" for the userID and "adminuser" for the password.
+3. Click on the "Import" on the right edge of the screen.
+4. Assign a name to the cluster and click "Import" at the bottom of the screen.
+5. Click "View Progress".  
+6. When the import is completed, click on "View cluster details" to launch the monitoring dashboard.
 
 
 
