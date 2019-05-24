@@ -19,7 +19,7 @@ This template will also provision a separate Machine for running the Gluster Web
 2. When prompted for credentials, enter "admin" for the userID and "adminuser" for the password.
 3. Click on the "Import" on the right edge of the screen.
 4. Assign a name to the cluster and click "Import" at the bottom of the screen.
-5. Click "View Progress".  
+5. Click "View Task Progress".  
 6. When the import is completed, click on "View cluster details" to launch the monitoring dashboard.
 
 
