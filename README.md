@@ -5,7 +5,7 @@ Automated deployment of gluster servers and clients
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
-This template lets you create an N node Gluster File System on RHEL 7.5. Because it uses the supported Redhat VM instances, you will need to provide a UserID and Password for your Redhat subscription.  You can provision 4, 8, or 12 nodes in an arbitrated-replicated cluster with a replication factor of 2. These machines will be placed into the same Availability Set.  There are no public IP addresses, so it must be installed onto an existing Virtual Network.  This template is specifically for the Ls_v2 series of VM's and uses the NVMe drives for the data bricks.  The number of drives will be determined by the VM size that you specify.  
+This template lets you create an N node Gluster File System on RHEL 7.5. It follows the Red Hat guidelines for a layered installation.  Because it uses the supported Red Hat VM instances, you will need to provide a UserID and Password for your Red Hat subscription.  You can provision 4, 8, or 12 nodes in an arbitrated-replicated cluster with a replication factor of 2. These machines will be placed into the same Availability Set.  There are no public IP addresses, so it must be installed onto an existing Virtual Network.  This template is specifically for the Ls_v2 series of VM's and uses the NVMe drives for the data bricks.  The number of drives will be determined by the VM size that you specify.  
 
 The even numbered VM's will also have Premium disks attched to use as the arbiter bricks.  All of the bricks, both data and arbiter, are configured to consume the entire disk device.  This will keep the total number of bricks at a minimum while still providing the highest IOPS potential.
 
