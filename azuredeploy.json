@@ -40,15 +40,14 @@
     },
     "scaleNumber": {
       "type": "int",
-      "defaultValue": 8,
+      "defaultValue": 4,
       "allowedValues": [
         4,
         8,
-        12,
-        16
+        12
       ],
       "metadata": {
-        "description": "Number of nodes in the gluster file system"
+        "description": "Number of gluster host machines"
       }
     },
     "existingVNetName": {
@@ -72,7 +71,7 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "ssh user name"
+        "description": "Admin User Name"
       }
     },
     "adminPassword": {
@@ -92,14 +91,21 @@
         "Standard_L80s_v2"
       ],
       "metadata": {
-        "description": "sku to use for the NFS server VM"
+        "description": "sku to use for the Gluster host VM's"
+      }
+    },
+    "arbiterDiskSize": {
+      "type": "int",
+      "defaultValue": 32,
+      "metadata": {
+        "description": "Size of attached Premium Disks for arbiter bricks"
       }
     },
     "vmNamePrefix": {
       "type": "string",
       "defaultValue": "glusterhost",
       "metadata": {
-        "description": "VM name prefix, a number will be appended for each node"
+        "description": "VM name prefix, a number will be appended for each host"
       }
     },
     "volumeName": {
@@ -410,11 +416,9 @@
                     "lun": "[copyIndex('dataDisks')]",
                     "createOption": "Empty",
                     "caching": "None",
-                    "diskSizeGB": "512"
+                    "diskSizeGB": "[parameters('arbiterDiskSize')]"
                 }
-            }]
-
-        
+            }]     
         },
         "networkProfile": {
           "networkInterfaces": [
