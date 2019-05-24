@@ -8,12 +8,6 @@
     "RedhatSubscriptionPassword": {
       "value": ""
     },
-    "imageResourceGroup": {
-      "value": ""
-    },
-    "imageName": {
-      "value": ""
-    },
     "scaleNumber": {
       "value": 4
     },
@@ -36,13 +30,10 @@
       "value": "rhelglusterVM"
     },
     "vmSize": {
-      "value": "Standard_E8s_v3"
+      "value": "Standard_L32s_v2"
     },
-    "dataDiskSize": {
-      "value": 128
-    },
-    "nbDataDisks": {
-      "value": 4
+    "arbiterDiskSize": {
+      "value": 32
     },
     "volumeName": {
       "value": "gfsvol"
